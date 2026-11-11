@@ -1,0 +1,702 @@
+<title>VEX GO Builder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one-screen workbench. Header bar, part tray (left on wide screens, bottom drawer on narrow), 3D mat fills the rest, tools float on the mat. */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --ink:#18202b; --muted:#5d6877; --line:#d5dbe3;
+  --mat:#e3e9f0; --mat-line:#c9d3de;
+  --accent:#1f5fd1; --accent-ink:#ffffff; --accent-soft:#dfe9fb;
+  --sun:#f4c21b; --warn:#c2361f; --warn-soft:#fbe3de; --ok:#25804a;
+  --f-ui:"IBM Plex Sans Thai",system-ui,sans-serif; --f-num:"IBM Plex Mono",ui-monospace,monospace;
+  --r:10px; --thumb:#f3f5f8;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161c; --panel:#1a2029; --ink:#e7ecf2; --muted:#9aa6b5; --line:#2d3643;
+  --mat:#1d242e; --mat-line:#2c3542; --accent:#6c9cf0; --accent-ink:#0d1420; --accent-soft:#223453;
+  --sun:#f4c21b; --warn:#ff8a73; --warn-soft:#3c211d; --ok:#5cc988; --thumb:#cfd6df; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161c; --panel:#1a2029; --ink:#e7ecf2; --muted:#9aa6b5; --line:#2d3643;
+  --mat:#1d242e; --mat-line:#2c3542; --accent:#6c9cf0; --accent-ink:#0d1420; --accent-soft:#223453;
+  --sun:#f4c21b; --warn:#ff8a73; --warn-soft:#3c211d; --ok:#5cc988; --thumb:#cfd6df; color-scheme:dark}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;overflow:hidden}
+#app{height:100%;display:grid;grid-template-rows:auto 1fr;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:16px;letter-spacing:.01em;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand i{width:14px;height:14px;border-radius:3px;background:var(--accent);box-shadow:5px 5px 0 var(--sun);display:inline-block;margin-right:6px}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 13px var(--f-ui);padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg.lang button{padding:6px 10px;font-family:var(--f-num);font-size:12px}
+.grow{flex:1}
+.mname{min-width:0;flex:1 1 160px;max-width:260px;font:600 14px var(--f-ui);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:500 13px var(--f-ui);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{position:relative;display:grid;grid-template-columns:300px 1fr;min-height:0}
+aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;gap:4px;padding:10px 12px 6px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:transparent;color:var(--muted);font:500 12px var(--f-ui);padding:4px 10px;border-radius:999px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.lib{flex:1;overflow:auto;padding:4px 12px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;align-content:start}
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--bg);padding:6px 6px 5px;cursor:pointer;display:flex;flex-direction:column;gap:2px;text-align:left;color:var(--ink);font-family:var(--f-ui)}
+.card img{width:100%;aspect-ratio:1;object-fit:contain;max-width:100%;background:var(--thumb);border-radius:7px}
+.card .nm{font-size:11.5px;font-weight:600;line-height:1.25;min-height:2.5em}
+.card .ct{font:500 11px var(--f-num);color:var(--muted)}
+.card .ct.over{color:var(--warn)}
+.card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;background:var(--accent-soft)}
+.bom{border-top:1px solid var(--line);padding:10px 12px;max-height:32%;overflow:auto}
+.bom h3,.steps h3{margin:0 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.bom ul,.steps ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.bom li{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.bom li .n{margin-left:auto;font:500 12px var(--f-num);font-variant-numeric:tabular-nums}
+.bom li.over .n{color:var(--warn);font-weight:700}
+.dot{width:10px;height:10px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.2)}
+.stage{position:relative;min-width:0;min-height:0;background:var(--mat)}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.tools{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;flex-wrap:wrap;justify-content:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:0 6px 24px rgba(10,20,40,.12);max-width:calc(100% - 24px)}
+.tools .btn{padding:8px 12px}
+.tools kbd{font:500 10.5px var(--f-num);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:5px}
+.hint{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;align-items:flex-start}
+.chip{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--ink);box-shadow:0 2px 10px rgba(10,20,40,.08)}
+.chip b{font-family:var(--f-num);font-weight:500}
+.stepbox{display:flex;gap:6px;align-items:center}
+.steps{flex:1;overflow:auto;padding:12px}
+.steps li{display:flex;align-items:center;gap:10px;padding:6px;border-radius:8px;background:var(--bg)}
+.steps li img{width:46px;height:46px;object-fit:contain;background:var(--thumb);border-radius:6px}
+.steps li .q{margin-left:auto;font:600 15px var(--f-num)}
+.stepnum{font:600 34px var(--f-num);line-height:1}
+.stepnum small{font-size:15px;color:var(--muted)}
+.reflink{display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:var(--accent)}
+.instr-nav{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 8px;box-shadow:0 6px 24px rgba(10,20,40,.12);width:min(560px,calc(100% - 24px))}
+.instr-nav input[type=range]{flex:1;min-width:60px;accent-color:var(--accent)}
+.instr-nav .btn{padding:10px 16px;font-weight:600}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:16px;background:color-mix(in srgb,var(--mat) 70%,transparent);font-weight:600;color:var(--muted)}
+.sheet{position:fixed;inset:0;background:rgba(10,15,25,.45);display:grid;place-items:center;z-index:20;padding:16px}
+.sheet .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:min(460px,100%);max-height:80vh;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.sheet h2{margin:0;font-size:17px}
+.mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.mlist li{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.mlist li .meta{color:var(--muted);font-size:12px}
+.mlist li .grow{min-width:0}
+.toast{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:10px;font-weight:500;z-index:30;max-width:calc(100% - 32px)}
+.muted{color:var(--muted)}
+@media (max-width:820px){
+  main{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  aside{grid-row:2;border-right:0;border-top:1px solid var(--line);max-height:42vh}
+  .lib{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:92px;overflow-x:auto;overflow-y:hidden;padding-bottom:10px}
+  .bom{display:none}
+  .stage{grid-row:1}
+  .steps{max-height:30vh}
+  .steps ul{flex-direction:row;overflow-x:auto}
+  .steps li{flex:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div id="app">
+  <header>
+    <div class="brand"><i></i>VEX GO Builder</div>
+    <div class="seg" role="group" data-i18n-aria="mode">
+      <button id="mBuild" aria-pressed="true">Builder</button>
+      <button id="mInstr" aria-pressed="false">Instructions</button>
+    </div>
+    <input id="mname" class="mname" data-i18n-aria="modelName" maxlength="80">
+    <div class="grow"></div>
+    <div class="seg lang" role="group" data-i18n-aria="language">
+      <button id="lTh" aria-pressed="true" lang="th">TH</button>
+      <button id="lEn" aria-pressed="false" lang="en">EN</button>
+    </div>
+    <button class="btn" id="bOpen" data-i18n="open">Open</button>
+    <button class="btn primary" id="bSave" data-i18n="save">Save</button>
+    <button class="btn" id="bMore" data-i18n="file">File</button>
+  </header>
+  <main>
+    <aside id="side">
+      <div id="buildSide" style="display:contents">
+        <div class="tabs" id="tabs"></div>
+        <div class="lib" id="lib"></div>
+        <div class="bom"><h3 data-i18n="bomTitle"></h3><ul id="bom"></ul></div>
+      </div>
+      <div id="instrSide" class="steps" hidden>
+        <div class="stepnum" id="stepNum">1 <small>/ 1</small></div>
+        <a id="refLink" class="reflink" target="_blank" rel="noopener noreferrer" hidden data-i18n="refLink"></a>
+        <h3 style="margin-top:12px" data-i18n="stepPartsTitle"></h3>
+        <ul id="stepParts"></ul>
+      </div>
+    </aside>
+    <section class="stage" id="stage">
+      <canvas id="c" role="img" data-i18n-aria="canvas"></canvas>
+      <div class="hint">
+        <div class="chip" id="hintL"></div>
+        <div class="chip stepbox" id="stepChip">Step <b id="curStep">1</b></div>
+      </div>
+      <div class="tools" id="tools">
+        <button class="btn" id="tRot"><span data-i18n="rotate"></span><kbd>R</kbd></button>
+        <button class="btn" id="tPt"><span data-i18n="changeHole"></span><kbd>T</kbd></button>
+        <button class="btn" id="tTilt"><span data-i18n="tilt"></span><kbd>F</kbd></button>
+        <button class="btn primary" id="tPlace" data-i18n="place"></button>
+        <button class="btn" id="tUndo">Undo</button>
+        <button class="btn" id="tDel" hidden data-i18n="delPart"></button>
+        <button class="btn" id="tStep" data-i18n="newStep"></button>
+      </div>
+      <div class="instr-nav" id="instrNav" hidden>
+        <button class="btn" id="iPrev" data-i18n="prev"></button>
+        <input type="range" id="iRange" min="1" max="1" value="1" data-i18n-aria="chooseStep">
+        <button class="btn primary" id="iNext" data-i18n="next"></button>
+      </div>
+      <div class="overlay" id="loading" role="status"></div>
+    </section>
+  </main>
+</div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+import {toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
+
+const $=id=>document.getElementById(id);
+
+/* ---------- language ---------- */
+const L={
+th:{
+  mode:'โหมด',modelName:'ชื่อโมเดล',language:'ภาษา',newModel:'โมเดลใหม่',modelDefault:'โมเดล',
+  open:'เปิดโมเดล',save:'บันทึก',file:'ไฟล์',
+  bomTitle:'ชิ้นที่ใช้ เทียบกับในกล่อง',bomEmpty:'ยังไม่มีชิ้น',
+  refLink:'เปิดคู่มือจริงของ VEX',stepPartsTitle:'ชิ้นที่ใช้ใน Step นี้',noPartsModel:'โมเดลนี้ยังไม่มีชิ้น',
+  canvas:'พื้นที่แสดงโมเดล 3 มิติ',
+  rotate:'หมุน',changeHole:'เปลี่ยนจุดต่อ',tilt:'ตั้งชิ้น',place:'วาง',delPart:'ลบชิ้นนี้',newStep:'Step ใหม่',
+  prev:'ก่อนหน้า',next:'ถัดไป',chooseStep:'เลือก Step',loading:'กำลังโหลดชิ้นส่วน',
+  tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pin และ Connector',tab_motion:'Gear Wheel Shaft',tab_other:'อื่นๆ',tab_elec:'Electronics',
+  iqName:'ชื่อใน VEX IQ Legal Parts',
+  hSel:'{0} ถูกเลือก แตะ ลบชิ้นนี้ หรือแตะที่ว่างเพื่อยกเลิก',
+  hPick:'เลือกชิ้นจากคลัง หรือแตะชิ้นบนโมเดลเพื่อเลือก',
+  hFirst:'เลือกชิ้นแรกจากคลัง แล้วแตะบนพื้นเพื่อวาง',
+  hArmed:'{0} แตะจุดบนโมเดล หรือแตะพื้นเพื่อวาง',
+  hConn:'{0} จุดต่อ {1} จาก {2} แตะซ้ำหรือกด วาง',
+  hGround:'{0} วางบนพื้น แตะซ้ำหรือกด วาง',
+  tStepEmpty:'Step {0} ยังไม่มีชิ้น วางชิ้นก่อนแล้วค่อยขึ้น Step ใหม่',tStepStart:'เริ่ม Step {0}',
+  tSavedLocal:'บันทึกไว้ในเครื่องนี้แล้ว ใช้ ไฟล์ เพื่อส่งต่อ',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
+  tQuota:'พื้นที่เก็บเต็ม ลบโมเดลเก่าก่อน',tSaveFail:'บันทึกไม่ได้ สิทธิ์นี้ดูได้อย่างเดียว ใช้ ไฟล์ แทน',
+  openTitle:'เปิดโมเดล',loadingShort:'กำลังโหลด',startNew:'เริ่มโมเดลใหม่',close:'ปิด',openBtn:'เปิด',del:'ลบ',delConfirm:'ยืนยันลบ',
+  noSaved:'ยังไม่มีโมเดลที่บันทึกไว้ ประกอบแล้วกด บันทึก',meta:'{0} ชิ้น, {1}',example:'โมเดลตัวอย่าง',
+  tDelFail:'ลบไม่ได้ ต้องมีสิทธิ์แก้ไข',
+  fileTitle:'ไฟล์โมเดล',fileDesc:'ส่งออกเป็นไฟล์ JSON เก็บไว้หรือส่งให้คนอื่นเปิดต่อ',dl:'ดาวน์โหลด JSON',openJson:'เปิดไฟล์ JSON',
+  tCopied:'คัดลอก JSON ไว้ในคลิปบอร์ดแล้ว',tNoDl:'ดาวน์โหลดไม่ได้ในหน้านี้',tOpened:'เปิด {0} แล้ว',tBadFile:'ไฟล์นี้ไม่ใช่โมเดล VEX GO Builder',
+  tLoadFail:'โหลดชิ้นส่วนไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่',noWebgl:'อุปกรณ์นี้ไม่รองรับ WebGL จึงแสดงโมเดล 3 มิติไม่ได้',bootFail:'โหลดข้อมูลชิ้นส่วนไม่ได้ ลองรีเฟรชหน้า'
+},
+en:{
+  mode:'Mode',modelName:'Model name',language:'Language',newModel:'New model',modelDefault:'Model',
+  open:'Open',save:'Save',file:'File',
+  bomTitle:'Used vs. in the kit',bomEmpty:'No parts yet',
+  refLink:'Open the official VEX instructions',stepPartsTitle:'Parts in this step',noPartsModel:'This model has no parts yet',
+  canvas:'3D model view',
+  rotate:'Rotate',changeHole:'Change hole',tilt:'Tilt',place:'Place',delPart:'Delete part',newStep:'New step',
+  prev:'Back',next:'Next',chooseStep:'Choose step',loading:'Loading parts',
+  tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pins and Connectors',tab_motion:'Gears, Wheels, Shafts',tab_other:'Other',tab_elec:'Electronics',
+  iqName:'Name in VEX IQ Legal Parts',
+  hSel:'{0} selected. Tap Delete part, or tap empty space to cancel',
+  hPick:'Pick a part from the library, or tap a part on the model to select it',
+  hFirst:'Pick the first part from the library, then tap the floor to place it',
+  hArmed:'{0} Tap a hole on the model, or tap the floor to place',
+  hConn:'{0} hole {1} of {2}. Tap again or press Place',
+  hGround:'{0} on the floor. Tap again or press Place',
+  tStepEmpty:'Step {0} has no parts yet. Place a part before starting a new step',tStepStart:'Started step {0}',
+  tSavedLocal:'Saved on this device. Use File to share it',tSavedDb:'Saved {0}. Everyone with this link can see it',
+  tQuota:'Storage is full. Delete an old model first',tSaveFail:'Could not save. You have view only access. Use File instead',
+  openTitle:'Open model',loadingShort:'Loading',startNew:'Start a new model',close:'Close',openBtn:'Open',del:'Delete',delConfirm:'Confirm delete',
+  noSaved:'No saved models yet. Build one and press Save',meta:'{0} parts, {1}',example:'example model',
+  tDelFail:'Could not delete. Editor access is needed',
+  fileTitle:'Model file',fileDesc:'Export as a JSON file to keep or send to someone else',dl:'Download JSON',openJson:'Open JSON file',
+  tCopied:'JSON copied to the clipboard',tNoDl:'Downloads are not available here',tOpened:'Opened {0}',tBadFile:'This file is not a VEX GO Builder model',
+  tLoadFail:'Could not load parts. Check the connection and try again',noWebgl:'This device does not support WebGL, so the 3D view cannot be shown',bootFail:'Could not load the part data. Try refreshing the page'
+}};
+let lang='th';
+try{ const s=localStorage.getItem('vexgo-lang'); lang=(s==='th'||s==='en')?s:(/^th/i.test(navigator.language||'')?'th':'en'); }catch{}
+function t(k,...a){ let s=(L[lang]&&L[lang][k])??L.en[k]??k; return s.replace(/\{(\d)\}/g,(_,i)=>a[+i]); }
+const isDefaultName=n=>!n||n===L.th.newModel||n===L.en.newModel;
+
+/* WebGL check before anything else */
+{ const c=document.createElement('canvas'); if(!(c.getContext('webgl2')||c.getContext('webgl'))){ $('loading').textContent=t('noWebgl'); throw new Error('no webgl'); } }
+
+const CAT=['beam','plate','pin','motion','other','elec'];
+let CATALOG, PART={};
+const geoCache={}, matCache={};
+const loader=new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
+const MAX_PARTS=3000;
+
+/* ---------- model state ---------- */
+let model={name:'',parts:[],step:1,ref:null};
+let undoStack=[];
+let mode='build', armed=null, spin=0, ptIdx=0, tilt=0, hover=null, selected=-1, modelId=null;
+let edited=false, srcFile=null;   // edited: user changed the model; srcFile: built-in file it came from
+const TILTS=[new THREE.Quaternion(),new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2),new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.PI/2)];
+
+/* ---------- three setup (render only when something changed) ---------- */
+const canvas=$('c'), stage=$('stage');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(35,1,1,8000); camera.up.set(0,0,1); camera.position.set(260,-320,240);
+const controls=new OrbitControls(camera,canvas); controls.enableDamping=true; controls.target.set(0,0,20);
+let dirty=true; const need=()=>{dirty=true;};
+controls.addEventListener('change',need);
+scene.add(new THREE.HemisphereLight(0xffffff,0x8a94a6,1.6));
+const sun=new THREE.DirectionalLight(0xffffff,1.9); sun.position.set(200,-300,500); scene.add(sun);
+const fill=new THREE.DirectionalLight(0xffffff,.6); fill.position.set(-300,200,150); scene.add(fill);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+let grid;
+function makeGrid(){ if(grid){scene.remove(grid); grid.geometry.dispose(); grid.material.dispose();} grid=new THREE.GridHelper(508,40,css('--mat-line'),css('--mat-line')); grid.rotation.x=Math.PI/2; grid.position.z=-.05; scene.add(grid); need(); }
+makeGrid(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change',makeGrid);
+new MutationObserver(makeGrid).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+const root=new THREE.Group(); scene.add(root);
+const ghostRoot=new THREE.Group(); scene.add(ghostRoot);
+function resize(){const r=stage.getBoundingClientRect(); renderer.setSize(r.width,r.height,false); camera.aspect=r.width/Math.max(1,r.height); camera.updateProjectionMatrix(); need();}
+new ResizeObserver(resize).observe(stage);
+
+/* ---------- loading ---------- */
+async function geo(sid){
+  if(geoCache[sid]) return geoCache[sid];
+  const p=(async()=>{
+    const res=await fetch('m/'+PART[sid].file+'.json'); if(!res.ok) throw new Error('mesh '+res.status);
+    const j=await res.json(); const bin=Uint8Array.from(atob(j.glb),c=>c.charCodeAt(0)).buffer; const g=await loader.parseAsync(bin,'');
+    let m=null; g.scene.traverse(o=>{if(o.isMesh&&!m)m=o});
+    m.updateWorldMatrix(true,false);
+    let gg=m.geometry.clone(); gg.applyMatrix4(m.matrixWorld); gg.deleteAttribute('normal');
+    for(const k of Object.keys(gg.attributes)) if(k!=='position') gg.deleteAttribute(k);
+    gg=toCreasedNormals(gg,Math.PI/5); gg.computeBoundingBox(); gg.computeBoundingSphere();
+    return gg;
+  })();
+  geoCache[sid]=p;
+  p.catch(()=>{ if(geoCache[sid]===p) delete geoCache[sid]; });   // a failed fetch must be retryable
+  return p;
+}
+async function ensureGeo(sid){ const g=await geo(sid); geoCache[sid]._v=g; return g; }
+const geoAll=ids=>Promise.all(ids.map(ensureGeo));
+function mat(hex,kind){
+  const k=hex+(kind||''); if(matCache[k]) return matCache[k];
+  const m=new THREE.MeshStandardMaterial({color:hex,roughness:.55,metalness:.02,transparent:kind==='g',opacity:kind==='g'?.55:1,depthWrite:kind!=='g'});
+  if(kind==='s'){ m.emissive=new THREE.Color(css('--accent')); m.emissiveIntensity=.35; }
+  return matCache[k]=m;
+}
+
+/* ---------- connectors ---------- */
+const V=a=>new THREE.Vector3(a[0],a[1],a[2]);
+const isF=k=>k[0]==='F', isM=k=>k[0]==='M';
+function compat(a,b){ if(isF(a)&&isF(b)) return true; if(isM(a)&&isM(b)) return false; const m=isM(a)?a:b, f=isF(a)?a:b; return !(m==='MP'&&f==='FS'); }
+function worldConns(i){
+  const p=model.parts[i], P=PART[p.sid], q=new THREE.Quaternion(...p.q), tt=V(p.p);
+  return P.conn.map((c,j)=>({i,j,k:c.k,p:V(c.p).applyQuaternion(q).add(tt),n:V(c.n).applyQuaternion(q).normalize()}));
+}
+let allConns=[], freeConns=[];
+function rebuildConns(){
+  allConns=[]; model.parts.forEach((_,i)=>allConns.push(...worldConns(i)));
+  // spatial hash with neighbour lookup, so a pair straddling a cell edge still counts as occupied
+  const CELL=2, cell=v=>Math.floor(v/CELL), key=(x,y,z)=>x+','+y+','+z;
+  const bucket=new Map();
+  for(const c of allConns){const k=key(cell(c.p.x),cell(c.p.y),cell(c.p.z)); let a=bucket.get(k); if(!a) bucket.set(k,a=[]); a.push(c);}
+  const taken=c=>{
+    const cx=cell(c.p.x),cy=cell(c.p.y),cz=cell(c.p.z);
+    for(let x=cx-1;x<=cx+1;x++) for(let y=cy-1;y<=cy+1;y++) for(let z=cz-1;z<=cz+1;z++){
+      const a=bucket.get(key(x,y,z)); if(!a) continue;
+      for(const o of a) if(o.i!==c.i&&o.p.distanceToSquared(c.p)<.64&&o.n.dot(c.n)<-.9) return true;
+    }
+    return false;
+  };
+  freeConns=allConns.filter(c=>!taken(c));
+}
+function srcOptions(target){
+  const P=PART[armed.sid]; const out=[];
+  P.conn.forEach((c,j)=>{ if(compat(c.k,target.k)) out.push(j); });
+  out.sort((a,b)=>(isM(P.conn[b].k)-isM(P.conn[a].k)));
+  return out;
+}
+function snapPose(target,j,s){
+  const c=PART[armed.sid].conn[j], nB=V(c.n), pB=V(c.p);
+  const q1=new THREE.Quaternion().setFromUnitVectors(nB,target.n.clone().negate());
+  const qs=new THREE.Quaternion().setFromAxisAngle(target.n,s*Math.PI/2);
+  const q=qs.multiply(q1);
+  const pos=target.p.clone().sub(pB.applyQuaternion(q));
+  return {q,pos,dir:target.n.clone()};
+}
+function groundPose(pt){
+  const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),spin*Math.PI/2).multiply(TILTS[tilt]);
+  const b=PART[armed.sid].bounds; let minz=1e9;
+  for(const x of [b[0][0],b[1][0]]) for(const y of [b[0][1],b[1][1]]) for(const z of [b[0][2],b[1][2]]) minz=Math.min(minz,new THREE.Vector3(x,y,z).applyQuaternion(q).z);
+  const g=6.35, pos=new THREE.Vector3(Math.round(pt.x/g)*g,Math.round(pt.y/g)*g,-minz);
+  return {q,pos,dir:new THREE.Vector3(0,0,1)};
+}
+
+/* ---------- scene sync ---------- */
+const meshes=[]; let syncSeq=0;
+async function syncScene(visibleUpTo=Infinity,animStep=null){
+  const my=++syncSeq;
+  await Promise.all([...new Set(model.parts.map(p=>p.sid))].map(ensureGeo));
+  if(my!==syncSeq) return;               // a newer sync started while we awaited; it will draw
+  root.clear(); meshes.length=0;         // clear only after the await so two syncs can never both add
+  model.parts.forEach((p,i)=>{
+    if(p.step>visibleUpTo) return;
+    const m=new THREE.Mesh(geoCache[p.sid]._v,mat(p.hex,i===selected?'s':''));
+    m.position.fromArray(p.p); m.quaternion.fromArray(p.q); m.userData={i,home:m.position.clone(),dir:V(p.dir||[0,0,1])};
+    if(animStep!==null&&p.step===animStep) m.userData.anim=true;
+    root.add(m); meshes.push(m);
+  });
+  need();
+  if(animStep!==null) runAnim();
+}
+
+/* dots */
+const dotGeo=new THREE.SphereGeometry(1.4,12,8);
+const dotMatF=new THREE.MeshBasicMaterial({color:0xffffff,depthTest:true});
+const dotMatM=new THREE.MeshBasicMaterial({color:0xf4c21b});
+let dotsF=null,dotsM=null, cand=[];
+const hl=new THREE.Mesh(new THREE.TorusGeometry(4.2,.9,10,28),new THREE.MeshBasicMaterial({color:0x1f5fd1,depthTest:false,transparent:true}));
+hl.renderOrder=10; hl.visible=false; scene.add(hl);
+function rebuildDots(){
+  for(const d of [dotsF,dotsM]) if(d){scene.remove(d); d.dispose();}
+  cand=[];
+  if(armed){ const ks=PART[armed.sid].conn.map(c=>c.k); cand=freeConns.filter(c=>ks.some(k=>compat(k,c.k))); }
+  const f=cand.filter(c=>isF(c.k)), m=cand.filter(c=>isM(c.k));
+  const mk=(arr,mt)=>{const im=new THREE.InstancedMesh(dotGeo,mt,Math.max(1,arr.length)); im.count=arr.length; const M=new THREE.Matrix4(); arr.forEach((c,k)=>{M.setPosition(c.p.clone().addScaledVector(c.n,.4)); im.setMatrixAt(k,M);}); scene.add(im); return im;};
+  dotsF=mk(f,dotMatF); dotsM=mk(m,dotMatM); need();
+}
+
+/* ---------- ghost ---------- */
+let ghost=null, pose=null;
+async function updateGhost(){
+  ghostRoot.clear(); ghost=null; pose=null; hl.visible=false; need();
+  if(!armed||mode!=='build'||!hover) { updateHint(); return; }
+  const g=await ensureGeo(armed.sid);
+  if(!armed||!hover) { updateHint(); return; }
+  if(hover.type==='conn'){
+    const opts=srcOptions(hover.c); if(!opts.length){updateHint();return;}
+    const j=opts[ptIdx%opts.length]; pose=snapPose(hover.c,j,spin);
+    hl.position.copy(hover.c.p); hl.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),hover.c.n); hl.visible=true;
+  } else pose=groundPose(hover.pt);
+  ghostRoot.clear();
+  ghost=new THREE.Mesh(g,mat(armed.hex,'g')); ghost.position.copy(pose.pos); ghost.quaternion.copy(pose.q); ghostRoot.add(ghost);
+  updateHint(); need();
+}
+function updateHint(){
+  const h=$('hintL');
+  if(mode!=='build'){h.hidden=true;return;} h.hidden=false;
+  if(selected>=0){h.textContent=t('hSel',PART[model.parts[selected].sid].name); return;}
+  if(!armed){h.textContent=t(model.parts.length?'hPick':'hFirst'); return;}
+  const nm=PART[armed.sid].name;
+  if(!hover) h.textContent=t('hArmed',nm);
+  else if(hover.type==='conn'){const n=srcOptions(hover.c).length; h.textContent=t('hConn',nm,(ptIdx%n)+1,n);}
+  else h.textContent=t('hGround',nm);
+}
+
+/* ---------- picking ---------- */
+const ray=new THREE.Raycaster(); const ndc=new THREE.Vector2();
+function setNdc(e){const r=canvas.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); return r;}
+function pick(e){
+  const r=setNdc(e); ray.setFromCamera(ndc,camera);
+  const hits=ray.intersectObjects(meshes,false);
+  if(armed){
+    let best=null,bd=26*26; const v=new THREE.Vector3();
+    for(const c of cand){
+      v.copy(c.p).project(camera); if(v.z>1) continue;
+      const dx=(v.x-ndc.x)*r.width/2, dy=(v.y-ndc.y)*r.height/2, d=dx*dx+dy*dy;
+      if(d<bd){ // occlusion
+        const dist=camera.position.distanceTo(c.p);
+        const rr=new THREE.Raycaster(camera.position,c.p.clone().sub(camera.position).normalize(),0,dist-3.5);
+        if(rr.intersectObjects(meshes,false).length) continue;
+        bd=d; best=c;
+      }
+    }
+    if(best) return {type:'conn',c:best};
+    if(!hits.length){ const pl=new THREE.Plane(new THREE.Vector3(0,0,1),0), pt=new THREE.Vector3(); if(ray.ray.intersectPlane(pl,pt)) return {type:'ground',pt}; }
+    return null;
+  }
+  if(hits.length) return {type:'part',i:hits[0].object.userData.i};
+  return null;
+}
+const sameHover=(a,b)=>a&&b&&a.type===b.type&&(a.type==='conn'?(a.c.i===b.c.i&&a.c.j===b.c.j):a.type==='ground'?a.pt.distanceTo(b.pt)<6.35:false);
+let down=null, moveEv=null, moveRaf=0;
+canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,t:performance.now()};});
+canvas.addEventListener('pointermove',e=>{
+  if(mode!=='build'||!armed||e.pointerType!=='mouse'||e.buttons) return;
+  moveEv=e; if(moveRaf) return;           // at most one pick per frame
+  moveRaf=requestAnimationFrame(()=>{ moveRaf=0; const ev=moveEv; if(!ev||!armed) return; const h=pick(ev); if(!sameHover(h,hover)){hover=h; ptIdx=0; updateGhost();} });
+});
+canvas.addEventListener('pointerup',e=>{
+  if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6||e.button>0){down=null;return;} down=null;
+  if(mode!=='build') return;
+  const h=pick(e);
+  if(armed){
+    if(e.pointerType==='mouse'){ if(!sameHover(h,hover)){hover=h;ptIdx=0;} if(hover) updateGhost().then(place); return; }
+    if(h&&sameHover(h,hover)) place(); else {hover=h;ptIdx=0;updateGhost();}
+  } else {
+    selected=(h&&h.type==='part')?h.i:-1; $('tDel').hidden=selected<0; syncScene(); updateHint();
+  }
+});
+
+/* ---------- actions ---------- */
+function snapshot(){ edited=true; undoStack.push(JSON.stringify(model)); if(undoStack.length>80) undoStack.shift(); }
+function place(){
+  if(!pose||!armed) return;
+  if(model.parts.length>=MAX_PARTS) return;
+  snapshot();
+  const r=a=>a.map(x=>Math.round(x*1000)/1000);
+  model.parts.push({sid:armed.sid,col:armed.col,hex:armed.hex,p:r(pose.pos.toArray()),q:r(pose.q.toArray()),dir:r(pose.dir.toArray()),step:model.step});
+  hover=null; afterChange();
+}
+async function afterChange(){ rebuildConns(); await syncScene(); rebuildDots(); updateGhost(); renderBOM(); renderLib(); saveDraft(); }
+$('tPlace').onclick=place;
+$('tRot').onclick=()=>{spin=(spin+1)%4; updateGhost();};
+$('tPt').onclick=()=>{ptIdx++; updateGhost();};
+$('tTilt').onclick=()=>{tilt=(tilt+1)%3; updateGhost();};
+$('tUndo').onclick=()=>{ if(!undoStack.length) return; model=JSON.parse(undoStack.pop()); selected=-1; $('tDel').hidden=true; $('mname').value=displayName(model.name); $('curStep').textContent=model.step; afterChange(); };
+$('tDel').onclick=()=>{ if(selected<0) return; snapshot(); model.parts.splice(selected,1); selected=-1; $('tDel').hidden=true; afterChange(); };
+$('tStep').onclick=()=>{ const maxUsed=Math.max(0,...model.parts.map(p=>p.step)); if(maxUsed<model.step){toast(t('tStepEmpty',model.step));return;} snapshot(); model.step++; $('curStep').textContent=model.step; saveDraft(); toast(t('tStepStart',model.step)); };
+$('mname').oninput=e=>{model.name=e.target.value; edited=true; saveDraft();};
+function closeSheet(){ const s=document.querySelector('.sheet'); if(s){s.remove(); return true;} return false; }
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ if(!closeSheet()) disarm(); return; }
+  const tg=e.target.tagName; if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT') return;
+  if(document.querySelector('.sheet')) return;
+  const k=e.key.toLowerCase();
+  if(k==='z'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); $('tUndo').click(); return; }
+  if(e.ctrlKey||e.metaKey||e.altKey) return;      // never steal browser shortcuts such as Ctrl+R
+  if(k==='r') $('tRot').click(); else if(k==='t') $('tPt').click(); else if(k==='f') $('tTilt').click();
+  else if((k==='delete'||k==='backspace')&&selected>=0) $('tDel').click();
+  else if(k==='enter'&&tg!=='BUTTON'&&tg!=='A') place();   // Enter on a focused button must only press that button
+  else if(mode==='instr'&&k==='arrowright') $('iNext').click(); else if(mode==='instr'&&k==='arrowleft') $('iPrev').click();
+});
+function disarm(){armed=null; hover=null; renderLib(); rebuildDots(); updateGhost();}
+let toastT; function toast(s){let el=document.querySelector('.toast'); if(!el){el=document.createElement('div'); el.className='toast'; el.setAttribute('role','status'); document.body.append(el);} el.textContent=s; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,2400);}
+
+/* ---------- library and BOM ---------- */
+let curCat='beam';
+function used(){const u={}; for(const p of model.parts){const k=p.sid+'|'+p.col; u[k]=(u[k]||0)+1;} return u;}
+function renderTabs(){ const tb=$('tabs'); tb.innerHTML=''; for(const k of CAT){const b=document.createElement('button'); b.textContent=t('tab_'+k); b.setAttribute('aria-pressed',k===curCat); b.onclick=()=>{curCat=k; renderTabs(); renderLib();}; tb.append(b);} }
+function partTitle(P){ return P.name+'  '+P.file+(P.iq?'\n'+t('iqName')+': '+P.iq:''); }
+function renderLib(){
+  if(!CATALOG) return;
+  const u=used(), lib=$('lib'); lib.innerHTML='';
+  for(const P of CATALOG.parts.filter(p=>p.cat===curCat)) for(const c of P.colors){
+    const k=P.id+'|'+c.c, n=u[k]||0;
+    const b=document.createElement('button'); b.className='card'; b.setAttribute('aria-pressed',!!armed&&armed.sid===P.id&&armed.col===c.c);
+    b.title=partTitle(P);
+    b.innerHTML=`<img alt="" loading="lazy" decoding="async" src="t/${P.id}_${c.c}.png"><span class="nm"></span><span class="ct ${n>c.qty?'over':''}">${n} / ${c.qty}</span>`;
+    b.querySelector('.nm').textContent=P.name;
+    b.onclick=async()=>{
+      if(armed&&armed.sid===P.id&&armed.col===c.c){disarm();return;}
+      armed={sid:P.id,col:c.c,hex:c.hex}; selected=-1; $('tDel').hidden=true; ptIdx=0; renderLib();
+      try{ await ensureGeo(P.id); }catch{ armed=null; renderLib(); toast(t('tLoadFail')); return; }
+      rebuildDots(); if(hover) updateGhost(); else updateHint();
+    };
+    lib.append(b);
+  }
+}
+function renderBOM(){
+  const u=used(), ul=$('bom'); ul.innerHTML='';
+  const rows=Object.entries(u).map(([k,n])=>{const [sid,col]=k.split('|'); const P=PART[sid]; const c=P.colors.find(x=>x.c===col); return {P,c,n};}).sort((a,b)=>a.P.name<b.P.name?-1:a.P.name>b.P.name?1:0);
+  if(!rows.length){ul.innerHTML='<li class="muted"></li>'; ul.firstChild.textContent=t('bomEmpty'); return;}
+  for(const r of rows){const li=document.createElement('li'); if(r.n>r.c.qty) li.className='over'; li.innerHTML=`<span class="dot" style="background:${r.c.hex}"></span><span></span><span class="n">${r.n} / ${r.c.qty}</span>`; li.children[1].textContent=r.P.name; ul.append(li);}
+}
+
+/* ---------- instructions ---------- */
+let stepList=[], stepIdx=0, animT0=0, animOn=false;
+function steps(){ return [...new Set(model.parts.map(p=>p.step))].sort((a,b)=>a-b); }
+async function showStep(k){
+  stepList=steps();
+  if(!stepList.length){ $('stepNum').innerHTML='0 <small>/ 0</small>'; $('stepParts').innerHTML='<li class="muted"></li>'; $('stepParts').firstChild.textContent=t('noPartsModel'); root.clear(); meshes.length=0; need(); return; }
+  stepIdx=Math.max(0,Math.min(k,stepList.length-1)); const s=stepList[stepIdx];
+  $('stepNum').innerHTML=`${s} <small>/ ${stepList.at(-1)}</small>`;
+  $('iRange').max=stepList.length; $('iRange').value=stepIdx+1;
+  $('iPrev').disabled=stepIdx===0; $('iNext').disabled=stepIdx===stepList.length-1;
+  const cnt={}; model.parts.filter(p=>p.step===s).forEach(p=>{const kk=p.sid+'|'+p.col; cnt[kk]=(cnt[kk]||0)+1;});
+  const ul=$('stepParts'); ul.innerHTML='';
+  for(const [kk,n] of Object.entries(cnt)){const [sid,col]=kk.split('|'); const li=document.createElement('li'); li.innerHTML=`<img alt="" src="t/${sid}_${col}.png"><span></span><span class="q">x${n}</span>`; li.children[1].textContent=PART[sid].name; ul.append(li);}
+  await syncScene(s,s);
+}
+function runAnim(){ animT0=performance.now(); animOn=true; }
+function animate(now){   // returns true while the fly-in is running so the loop keeps rendering
+  if(mode!=='instr'||!animOn) return false;
+  const t0=Math.min(1,(now-animT0)/700), e=1-Math.pow(1-t0,3);
+  for(const m of meshes) if(m.userData.anim){ m.position.copy(m.userData.home).addScaledVector(m.userData.dir,(1-e)*70); }
+  if(t0>=1) animOn=false;
+  return true;
+}
+$('iPrev').onclick=()=>showStep(stepIdx-1);
+$('iNext').onclick=()=>showStep(stepIdx+1);
+$('iRange').oninput=e=>showStep(+e.target.value-1);
+
+function frame(all=true){
+  const b=new THREE.Box3();
+  if(all){ for(const p of model.parts){ const g=geoCache[p.sid]&&geoCache[p.sid]._v; if(!g) continue; const bb=g.boundingBox.clone().applyMatrix4(new THREE.Matrix4().compose(V(p.p),new THREE.Quaternion(...p.q),new THREE.Vector3(1,1,1))); b.union(bb);} }
+  if(b.isEmpty()) for(const m of meshes) b.expandByObject(m);
+  if(b.isEmpty()) return;
+  const c=b.getCenter(new THREE.Vector3()), r=b.getSize(new THREE.Vector3()).length()/2;
+  const vf=camera.fov*Math.PI/360, hf=Math.atan(Math.tan(vf)*camera.aspect);
+  const d=Math.max(90,r/Math.sin(Math.min(vf,hf))*1.08);
+  const dir=camera.position.clone().sub(controls.target).normalize();
+  controls.target.copy(c); camera.position.copy(c).addScaledVector(dir,d); need();
+}
+async function setMode(m){
+  mode=m; $('mBuild').setAttribute('aria-pressed',m==='build'); $('mInstr').setAttribute('aria-pressed',m==='instr');
+  $('buildSide').style.display=m==='build'?'contents':'none'; $('instrSide').hidden=m!=='instr';
+  $('tools').hidden=m!=='build'; $('instrNav').hidden=m!=='instr'; $('stepChip').hidden=m!=='build';
+  selected=-1; $('tDel').hidden=true; hover=null;
+  try{
+    if(m==='instr'){ disarm(); await geoAll([...new Set(model.parts.map(p=>p.sid))]); await showStep(0); frame(); location.hash='instructions'; }
+    else { await syncScene(); rebuildDots(); updateGhost(); location.hash=''; }
+  }catch{ toast(t('tLoadFail')); }
+}
+$('mBuild').onclick=()=>setMode('build'); $('mInstr').onclick=()=>setMode('instr');
+
+/* ---------- storage and model validation ---------- */
+function saveDraft(){
+  try{
+    if(edited) localStorage.setItem('vexgo-draft',JSON.stringify({edited:true,modelId,model:{name:model.name,ref:model.ref,step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step})=>({sid,col,p,q,dir,step}))}}));
+    else if(srcFile) localStorage.setItem('vexgo-draft',JSON.stringify({edited:false,src:srcFile}));   // unedited built-in: remember which, never a stale copy
+  }catch{}
+}
+const num3=a=>Array.isArray(a)&&a.length===3&&a.every(x=>typeof x==='number'&&isFinite(x)&&Math.abs(x)<5000);
+function cleanModel(m){
+  if(!m||typeof m!=='object'||!Array.isArray(m.parts)) throw new Error('bad model');
+  const parts=[];
+  for(const p of m.parts.slice(0,MAX_PARTS)){
+    if(!p||typeof p!=='object') continue;
+    const P=PART[p.sid]; if(!P) continue;
+    if(!num3(p.p)||!Array.isArray(p.q)||p.q.length!==4||!p.q.every(x=>typeof x==='number'&&isFinite(x))) continue;
+    const ql=Math.hypot(...p.q); if(ql<1e-6) continue;
+    const c=P.colors.find(c=>c.c===p.col)||P.colors[0];
+    const step=Math.min(999,Math.max(1,Math.floor(Number(p.step))||1));
+    parts.push({sid:p.sid,col:c.c,hex:c.hex,p:p.p.slice(),q:p.q.map(x=>x/ql),dir:num3(p.dir)?p.dir.slice():[0,0,1],step});
+  }
+  let ref=null; try{ const u=new URL(String(m.ref||'')); if(u.protocol==='https:') ref=u.href; }catch{}   // never let a shared file inject a javascript: link
+  const maxStep=Math.max(1,...parts.map(p=>p.step));
+  return {name:String(m.name||'').slice(0,80),parts,step:Math.max(maxStep,Math.min(999,Math.floor(Number(m.step))||1)),ref};
+}
+const displayName=n=>isDefaultName(n)?t('newModel'):n;
+let db=null;
+async function loadModel(m,id,src){
+  const c=cleanModel(m);
+  model=c; if(isDefaultName(model.name)) model.name=t('newModel');
+  $('refLink').hidden=!model.ref; if(model.ref) $('refLink').href=model.ref;
+  modelId=id||null; srcFile=src||null; edited=!src&&!!(c.parts.length); undoStack=[]; selected=-1; hover=null;
+  $('mname').value=model.name; $('curStep').textContent=model.step;
+  try{ await geoAll([...new Set(model.parts.map(p=>p.sid))]); }catch{ toast(t('tLoadFail')); return; }
+  rebuildConns(); renderBOM(); renderLib();
+  if(mode==='instr'){await showStep(0);} else {await syncScene(); rebuildDots(); updateGhost();}
+  frame(); saveDraft();
+}
+function sheet(html){
+  const s=document.createElement('div'); s.className='sheet'; s.setAttribute('role','dialog'); s.setAttribute('aria-modal','true');
+  s.innerHTML=`<div class="box">${html}</div>`; s.onclick=e=>{if(e.target===s)s.remove();}; document.body.append(s);
+  const b=s.querySelector('button'); if(b) b.focus(); return s;
+}
+const fetchJson=async u=>{const r=await fetch(u); if(!r.ok) throw new Error(u+' '+r.status); return r.json();};
+const bname=b=>(lang==='en'&&b.name_en)?b.name_en:b.name;
+$('bSave').onclick=async()=>{
+  model.name=$('mname').value.trim()||t('modelDefault'); edited=true;
+  if(!db){ saveDraft(); toast(t('tSavedLocal')); return; }
+  const body={name:model.name,ref:model.ref||null,parts:model.parts.map(({sid,col,p,q,dir,step})=>({sid,col,p,q,dir,step})),step:model.step,updated:Date.now(),count:model.parts.length};
+  try{
+    if(modelId) await db.collection('models').doc(modelId).set(body);
+    else { const ref=await db.collection('models').add(body); modelId=ref.id; }
+    saveDraft(); toast(t('tSavedDb',model.name));
+  }catch(e){ toast(e&&e.code==='quota_exceeded'?t('tQuota'):t('tSaveFail')); }
+};
+$('bOpen').onclick=async()=>{
+  const s=sheet(`<h2></h2><ul class="mlist" id="ml"><li class="muted"></li></ul><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="mNew"></button><button class="btn" id="mClose"></button></div>`);
+  s.querySelector('h2').textContent=t('openTitle'); s.querySelector('.muted').textContent=t('loadingShort');
+  s.querySelector('#mNew').textContent=t('startNew'); s.querySelector('#mClose').textContent=t('close');
+  s.querySelector('#mClose').onclick=()=>s.remove();
+  s.querySelector('#mNew').onclick=()=>{s.remove(); loadModel({name:t('newModel'),parts:[],step:1});};
+  const ml=s.querySelector('#ml');
+  const list=[];
+  try{
+    const builtin=await fetchJson('models.json');
+    const loaded=await Promise.all(builtin.map(b=>fetchJson(b.file).then(m=>({...m,name:bname(b),id:null,builtin:true,file:b.file,count:m.parts.length})).catch(()=>null)));
+    list.push(...loaded.filter(Boolean));
+  }catch{}
+  if(db){ try{ const q=await db.collection('models').orderBy('updated','desc').limit(50).get(); q.docs.forEach(d=>list.push({id:d.id,...d.data()})); }catch{} }
+  ml.innerHTML='';
+  if(!list.length){ ml.innerHTML='<li class="muted"></li>'; ml.firstChild.textContent=t('noSaved'); }
+  for(const m of list){
+    const li=document.createElement('li');
+    li.innerHTML=`<div class="grow"><div class="nm" style="font-weight:600"></div><div class="meta"></div></div><button class="btn primary"></button>${m.builtin?'':'<button class="btn"></button>'}`;
+    li.querySelector('.nm').textContent=String(m.name||'').slice(0,80);
+    const cnt=Number(m.count)||(Array.isArray(m.parts)?m.parts.length:0);
+    const when=m.builtin?t('example'):(m.updated?new Date(Number(m.updated)).toLocaleDateString(lang==='th'?'th-TH':'en-GB'):'');
+    li.querySelector('.meta').textContent=t('meta',cnt,when);
+    const [bo,bd]=li.querySelectorAll('button'); bo.textContent=t('openBtn'); if(bd) bd.textContent=t('del');
+    bo.onclick=()=>{s.remove(); loadModel(m,m.id,m.builtin?m.file:null);};
+    if(bd) bd.onclick=async()=>{ if(bd.dataset.c!=='1'){bd.dataset.c='1'; bd.textContent=t('delConfirm'); return;} try{await db.collection('models').doc(m.id).delete(); li.remove(); if(modelId===m.id) modelId=null;}catch{toast(t('tDelFail'));} };
+    ml.append(li);
+  }
+};
+$('bMore').onclick=()=>{
+  const s=sheet(`<h2></h2><p class="muted" style="margin:0"></p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="fx"></button><button class="btn" id="fi"></button><button class="btn" id="fc"></button></div>`);
+  s.querySelector('h2').textContent=t('fileTitle'); s.querySelector('p').textContent=t('fileDesc');
+  s.querySelector('#fx').textContent=t('dl'); s.querySelector('#fi').textContent=t('openJson'); s.querySelector('#fc').textContent=t('close');
+  s.querySelector('#fc').onclick=()=>s.remove();
+  s.querySelector('#fi').onclick=()=>{s.remove(); $('fileIn').click();};
+  s.querySelector('#fx').onclick=async()=>{
+    const data=JSON.stringify({name:model.name,ref:model.ref||null,step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step})=>({sid,col,p,q,dir,step}))},null,1);
+    try{ const dl=await claude.use('downloads'); if(!dl) throw 0; await dl.save({filename:(model.name||'model').replace(/[\\/:*?"<>|]/g,'_')+'.json',data}); s.remove(); }
+    catch(e){ try{await navigator.clipboard.writeText(data); toast(t('tCopied'));}catch{toast(t('tNoDl'));} }
+  };
+};
+$('fileIn').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ if(f.size>8e6) throw 0; const m=JSON.parse(await f.text()); await loadModel(m,null); toast(t('tOpened',model.name||f.name)); }
+  catch{ toast(t('tBadFile')); }
+  e.target.value='';
+};
+
+/* ---------- language switch ---------- */
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAria));});
+  $('lTh').setAttribute('aria-pressed',lang==='th'); $('lEn').setAttribute('aria-pressed',lang==='en');
+  if(isDefaultName(model.name)){ model.name=t('newModel'); }
+  $('mname').value=displayName(model.name);
+  if($('loading')&&!$('loading').hidden) $('loading').textContent=t('loading');
+  renderTabs(); renderLib(); renderBOM(); updateHint();
+  if(mode==='instr'&&model.parts.length){ const k=stepIdx; showStep(k); } else if(mode==='instr'){ showStep(0); }
+}
+function setLang(l){ lang=l; try{localStorage.setItem('vexgo-lang',l);}catch{} applyLang(); }
+$('lTh').onclick=()=>setLang('th'); $('lEn').onclick=()=>setLang('en');
+
+/* ---------- boot ---------- */
+function loop(now){
+  requestAnimationFrame(loop);
+  const anim=animate(now);
+  const moved=controls.update();
+  if(anim||moved||dirty){ dirty=false; renderer.render(scene,camera); }
+}
+(async()=>{
+  $('loading').textContent=t('loading'); applyLang();
+  try{ CATALOG=await fetchJson('parts.json'); }catch{ $('loading').textContent=t('bootFail'); return; }
+  for(const p of CATALOG.parts) PART[p.id]=p;
+  renderTabs(); renderLib(); renderBOM(); resize(); requestAnimationFrame(loop);
+  let start=null;
+  try{
+    const d=JSON.parse(localStorage.getItem('vexgo-draft')||'null');
+    if(d&&d.edited&&d.model&&Array.isArray(d.model.parts)&&d.model.parts.length) start={model:d.model,modelId:d.modelId,src:null};
+    else if(d&&d.src&&/^[\w.-]+\.json$/.test(d.src)) start={model:await fetchJson(d.src),modelId:null,src:d.src};
+  }catch{}
+  if(!start){ try{ const list=await fetchJson('models.json'); start={model:await fetchJson(list[0].file),modelId:null,src:list[0].file}; }catch{} }
+  if(start) await loadModel(start.model,start.modelId,start.src);
+  $('loading').hidden=true; updateHint();
+  if(location.hash==='#instructions') setMode('instr');
+  if(window.claude&&claude.use){ claude.use('db').then(d=>{db=d;}).catch(()=>{}); }
+})();
+window.__vx={meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
+</script>
