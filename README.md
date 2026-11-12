@@ -6,9 +6,11 @@ Click a part, click a hole on the model, and it snaps into place.
 ## Features
 
 - **Builder**: part library with thumbnails and colors, snap to holes, rotate (R), change hole (T), tilt (F), Undo, parts used vs. quantity in the kit, save and load as JSON
+- **Showcase**: turn the model and tap a part to see its name, highlight every part of one kind, or switch to 2D and swipe through 10 pictures around the robot
 - **Instructions**: step-by-step playback with parts flying in, orbit camera, parts list per step, link to the official VEX instructions
 - Built-in models: Competition Base (55 parts, 28 steps) and Competition Advanced (131 parts), built from VEX instructions 269-8115-010 and 269-8115-040
-- Thai and English UI
+- Thai and English UI, click sounds (can be muted), saved models with preview pictures in Open
+- Works on phones, tablets and desktop
 
 ## Run locally
 

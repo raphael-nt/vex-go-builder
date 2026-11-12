@@ -29,7 +29,7 @@
 body{margin:0} img{max-width:100%}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;overflow:hidden}
-#app{height:100%;display:grid;grid-template-rows:auto 1fr;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+#app{height:100%;display:grid;grid-template-rows:auto 1fr;grid-template-columns:minmax(0,1fr);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));background:var(--panel);border-bottom:1px solid var(--line)}
 .brand{font-weight:700;font-size:16px;letter-spacing:.01em;display:flex;align-items:center;gap:8px;white-space:nowrap}
 .brand i{width:14px;height:14px;border-radius:3px;background:var(--accent);box-shadow:5px 5px 0 var(--sun);display:inline-block;margin-right:6px}
@@ -44,8 +44,8 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px max(1
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn:disabled{opacity:.45;cursor:default}
 button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-main{position:relative;display:grid;grid-template-columns:300px 1fr;min-height:0}
-aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+main{position:relative;display:grid;grid-template-columns:300px minmax(0,1fr);min-height:0;min-width:0}
+aside{min-width:0;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 .tabs{display:flex;gap:4px;padding:10px 12px 6px;flex-wrap:wrap}
 .tabs button{border:1px solid var(--line);background:transparent;color:var(--muted);font:500 12px var(--f-ui);padding:4px 10px;border-radius:999px;cursor:pointer}
 .tabs button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
@@ -84,16 +84,63 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 .instr-nav .btn{padding:10px 16px;font-weight:600}
 .overlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:16px;background:color-mix(in srgb,var(--mat) 70%,transparent);font-weight:600;color:var(--muted)}
 .sheet{position:fixed;inset:0;background:rgba(10,15,25,.45);display:grid;place-items:center;z-index:20;padding:16px}
+.sheet .box.wide{width:min(900px,100%);max-height:88vh}
 .sheet .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:min(460px,100%);max-height:80vh;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
 .sheet h2{margin:0;font-size:17px}
+.ohead{display:flex;align-items:center;gap:8px}
+.ohead h2{flex:1}
+.sheet h3{margin:6px 0 0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.mcard{position:relative;border:1px solid var(--line);border-radius:12px;background:var(--bg);overflow:hidden;min-width:0}
+.mcard:hover{border-color:var(--accent)}
+.mopen{border:0;background:none;padding:0;margin:0;width:100%;text-align:left;cursor:pointer;color:var(--ink);font:inherit;display:flex;flex-direction:column}
+.mopen img,.mopen .ph{width:100%;aspect-ratio:16/10;object-fit:cover;background:var(--mat);display:block}
+.mopen .ph{display:grid;place-items:center;font:300 40px var(--f-ui);color:var(--accent)}
+.mopen .tx{padding:8px 10px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.mopen .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mopen .meta{color:var(--muted);font-size:12px}
+.mdel{position:absolute;top:6px;right:6px;font-size:12px;padding:4px 9px;border-radius:999px}
+.hold{display:flex;align-items:center;gap:6px;padding:2px 8px 2px 2px;border-radius:10px;background:var(--accent-soft);font-size:12.5px;font-weight:600;max-width:220px;min-width:0}
+.hold img{width:34px;height:34px;object-fit:contain;background:var(--thumb);border-radius:8px;flex:none}
+.hold span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,var(--line))}
+.btn.icon{padding:6px 9px;display:inline-grid;place-items:center}
+.btn.icon svg{width:18px;height:18px;display:block}
+#hintL{min-width:0}
+.tag{position:absolute;z-index:5;pointer-events:none;transform:translate(-50%,calc(-100% - 14px));background:var(--ink);color:var(--panel);font-weight:600;font-size:13px;padding:6px 10px;border-radius:9px;white-space:nowrap;box-shadow:0 4px 14px rgba(10,20,40,.25)}
+.tag::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-bottom:0;border-top-color:var(--ink)}
+.tag small{display:block;font-weight:500;opacity:.75;font-size:11px}
+.gallery{position:absolute;inset:0;background:var(--mat);display:grid;grid-template-rows:minmax(0,1fr) auto;touch-action:pan-y;user-select:none}
+.gallery img{width:100%;height:100%;object-fit:contain;max-width:100%;display:block;pointer-events:none}
+.gnav{display:flex;gap:8px;align-items:center;margin:0 auto calc(14px + env(safe-area-inset-bottom,0px));background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 8px;width:min(560px,calc(100% - 24px));box-shadow:0 6px 24px rgba(10,20,40,.12)}
+.gnav input{flex:1;min-width:60px;accent-color:var(--accent)}
+.gnav .cnt{font:500 12px var(--f-num);color:var(--muted);min-width:44px;text-align:center}
+.gdots{display:flex;gap:5px;justify-content:center;padding:6px 0 0}
+.vparts li{cursor:pointer}
+.vparts li[aria-pressed="true"]{outline:2px solid var(--accent);background:var(--accent-soft)}
+.tools #hold{order:-3} .tools #tCancel{order:-2} .tools #tPlace{order:-1}
 .mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .mlist li{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 .mlist li .meta{color:var(--muted);font-size:12px}
 .mlist li .grow{min-width:0}
 .toast{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:10px;font-weight:500;z-index:30;max-width:calc(100% - 32px)}
 .muted{color:var(--muted)}
+@media (pointer:coarse){ .btn{min-height:42px} .tools .btn{padding:9px 14px} .tools kbd{display:none} .seg button{padding:8px 14px} }
+@media (max-width:640px){
+  header{gap:6px;padding-top:6px;padding-bottom:6px}
+  .tools{left:8px;right:8px;transform:none;max-width:none;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
+  .tools::-webkit-scrollbar{display:none}
+  .tools .btn,.tools .hold{flex:none}
+  .hold span{display:none}
+  .brand .bt{display:none}
+  .mname{order:10;flex:1 1 100%;max-width:none}
+  .btn{padding:7px 10px}
+  .seg button{padding:6px 11px}
+  .hint{top:8px;left:8px;right:8px}
+  .chip{font-size:12px}
+}
 @media (max-width:820px){
-  main{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
   aside{grid-row:2;border-right:0;border-top:1px solid var(--line);max-height:42vh}
   .lib{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:92px;overflow-x:auto;overflow-y:hidden;padding-bottom:10px}
   .bom{display:none}
@@ -108,10 +155,11 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 <body>
 <div id="app">
   <header>
-    <div class="brand"><i></i>VEX GO Builder</div>
+    <div class="brand"><i></i><span class="bt">VEX GO Builder</span></div>
     <div class="seg" role="group" data-i18n-aria="mode">
       <button id="mBuild" aria-pressed="true">Builder</button>
       <button id="mInstr" aria-pressed="false">Instructions</button>
+      <button id="mView" aria-pressed="false">Showcase</button>
     </div>
     <input id="mname" class="mname" data-i18n-aria="modelName" maxlength="80">
     <div class="grow"></div>
@@ -119,6 +167,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
       <button id="lTh" aria-pressed="true" lang="th">TH</button>
       <button id="lEn" aria-pressed="false" lang="en">EN</button>
     </div>
+    <button class="btn icon" id="bSnd" aria-pressed="true"></button>
     <button class="btn" id="bOpen" data-i18n="open">Open</button>
     <button class="btn primary" id="bSave" data-i18n="save">Save</button>
     <button class="btn" id="bMore" data-i18n="file">File</button>
@@ -136,6 +185,11 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
         <h3 style="margin-top:12px" data-i18n="stepPartsTitle"></h3>
         <ul id="stepParts"></ul>
       </div>
+      <div id="viewSide" class="steps" hidden>
+        <div class="seg" role="group" style="width:max-content"><button id="v3d" aria-pressed="true">3D</button><button id="v2d" aria-pressed="false">2D</button></div>
+        <h3 style="margin-top:14px" data-i18n="viewParts"></h3>
+        <ul id="viewParts" class="vparts"></ul>
+      </div>
     </aside>
     <section class="stage" id="stage">
       <canvas id="c" role="img" data-i18n-aria="canvas"></canvas>
@@ -144,18 +198,27 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
         <div class="chip stepbox" id="stepChip">Step <b id="curStep">1</b></div>
       </div>
       <div class="tools" id="tools">
+        <div class="hold" id="hold" hidden><img alt=""><span></span></div>
         <button class="btn" id="tRot"><span data-i18n="rotate"></span><kbd>R</kbd></button>
         <button class="btn" id="tPt"><span data-i18n="changeHole"></span><kbd>T</kbd></button>
         <button class="btn" id="tTilt"><span data-i18n="tilt"></span><kbd>F</kbd></button>
         <button class="btn primary" id="tPlace" data-i18n="place"></button>
         <button class="btn" id="tUndo">Undo</button>
-        <button class="btn" id="tDel" hidden data-i18n="delPart"></button>
+        <button class="btn warn" id="tDel" hidden data-i18n="delPart"></button>
+        <button class="btn" id="tCancel" hidden></button>
         <button class="btn" id="tStep" data-i18n="newStep"></button>
       </div>
       <div class="instr-nav" id="instrNav" hidden>
         <button class="btn" id="iPrev" data-i18n="prev"></button>
         <input type="range" id="iRange" min="1" max="1" value="1" data-i18n-aria="chooseStep">
         <button class="btn primary" id="iNext" data-i18n="next"></button>
+      </div>
+      <div class="tag" id="tag" hidden></div>
+      <div class="gallery" id="gallery" hidden>
+        <img id="gImg" alt="">
+        <div>
+          <div class="gnav"><button class="btn" id="gPrev" data-i18n="prev"></button><input type="range" id="gRange" min="1" max="10" value="1" data-i18n-aria="angleOf"><span class="cnt" id="gCnt"></span><button class="btn primary" id="gNext" data-i18n="next"></button></div>
+        </div>
       </div>
       <div class="overlay" id="loading" role="status"></div>
     </section>
@@ -193,7 +256,7 @@ th:{
   hConn:'{0} จุดต่อ {1} จาก {2} แตะซ้ำหรือกด วาง',
   hGround:'{0} วางบนพื้น แตะซ้ำหรือกด วาง',
   tStepEmpty:'Step {0} ยังไม่มีชิ้น วางชิ้นก่อนแล้วค่อยขึ้น Step ใหม่',tStepStart:'เริ่ม Step {0}',
-  tSavedLocal:'บันทึกไว้ในเครื่องนี้แล้ว ใช้ ไฟล์ เพื่อส่งต่อ',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
+  tSavedLocal:'บันทึก {0} ไว้ในเครื่องนี้แล้ว เปิดดูได้ที่ เปิดโมเดล',tQuotaLocal:'พื้นที่ในเครื่องเต็ม ลบโมเดลเก่าที่ เปิดโมเดล ก่อน',putBack:'วางคืน',viewParts:'ชิ้นในโมเดลนี้',viewHint:'แตะชิ้นส่วนเพื่อดูชื่อ ลากเพื่อหมุนดูรอบๆ',galleryHint:'ปัดซ้ายขวาเพื่อดูรอบตัวหุ่น',angleOf:'เลือกมุมมอง',making:'กำลังสร้างภาพ 10 มุม',deselect:'ยกเลิกเลือก',sound:'เสียง',examples:'โมเดลตัวอย่าง',mine:'โมเดลของฉัน',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
   tQuota:'พื้นที่เก็บเต็ม ลบโมเดลเก่าก่อน',tSaveFail:'บันทึกไม่ได้ สิทธิ์นี้ดูได้อย่างเดียว ใช้ ไฟล์ แทน',
   openTitle:'เปิดโมเดล',loadingShort:'กำลังโหลด',startNew:'เริ่มโมเดลใหม่',close:'ปิด',openBtn:'เปิด',del:'ลบ',delConfirm:'ยืนยันลบ',
   noSaved:'ยังไม่มีโมเดลที่บันทึกไว้ ประกอบแล้วกด บันทึก',meta:'{0} ชิ้น, {1}',example:'โมเดลตัวอย่าง',
@@ -219,7 +282,7 @@ en:{
   hConn:'{0} hole {1} of {2}. Tap again or press Place',
   hGround:'{0} on the floor. Tap again or press Place',
   tStepEmpty:'Step {0} has no parts yet. Place a part before starting a new step',tStepStart:'Started step {0}',
-  tSavedLocal:'Saved on this device. Use File to share it',tSavedDb:'Saved {0}. Everyone with this link can see it',
+  tSavedLocal:'Saved {0} on this device. Find it in Open',tQuotaLocal:'Device storage is full. Delete an old model in Open first',putBack:'Put back',viewParts:'Parts in this model',viewHint:'Tap a part to see its name. Drag to turn the model',galleryHint:'Swipe left or right to look around the robot',angleOf:'Choose a view',making:'Making 10 pictures',deselect:'Deselect',sound:'Sound',examples:'Example models',mine:'My models',tSavedDb:'Saved {0}. Everyone with this link can see it',
   tQuota:'Storage is full. Delete an old model first',tSaveFail:'Could not save. You have view only access. Use File instead',
   openTitle:'Open model',loadingShort:'Loading',startNew:'Start a new model',close:'Close',openBtn:'Open',del:'Delete',delConfirm:'Confirm delete',
   noSaved:'No saved models yet. Build one and press Save',meta:'{0} parts, {1}',example:'example model',
@@ -303,13 +366,14 @@ async function geo(sid){
 function overrides(sid,col){ const c=PART[sid].colors.find(x=>x.c===col)||PART[sid].colors[0]; return c.ov||{}; }
 function partMeshes(sid,col,kind){
   const ov=overrides(sid,col);
-  return geoCache[sid]._v.prims.map(pr=>new THREE.Mesh(pr.g,mat(ov[pr.name]||pr.hex,kind)));
+  return geoCache[sid]._v.prims.map(pr=>{ const hex=ov[pr.name]||pr.hex, m=new THREE.Mesh(pr.g,mat(hex,kind)); m.userData.hex=hex; return m; });
 }
 async function ensureGeo(sid){ const g=await geo(sid); geoCache[sid]._v=g; return g; }
 const geoAll=ids=>Promise.all(ids.map(ensureGeo));
 function mat(hex,kind){
   const k=hex+(kind||''); if(matCache[k]) return matCache[k];
-  const m=new THREE.MeshStandardMaterial({color:hex,roughness:.55,metalness:.02,transparent:kind==='g',opacity:kind==='g'?.55:1,depthWrite:kind!=='g'});
+  const see=kind==='g'||kind==='d';   // g ghost of the part in hand, d dimmed part in showcase
+  const m=new THREE.MeshStandardMaterial({color:hex,roughness:.55,metalness:.02,transparent:see,opacity:kind==='g'?.55:kind==='d'?.14:1,depthWrite:!see});
   if(kind==='s'){ m.emissive=new THREE.Color(css('--accent')); m.emissiveIntensity=.35; }
   return matCache[k]=m;
 }
@@ -372,7 +436,7 @@ async function syncScene(visibleUpTo=Infinity,animStep=null){
     if(p.step>visibleUpTo) return;
     const home=V(p.p), dir=V(p.dir||[0,0,1]), anim=animStep!==null&&p.step===animStep;
     for(const m of partMeshes(p.sid,p.col,i===selected?'s':'')){
-      m.position.copy(home); m.quaternion.fromArray(p.q); m.userData={i,home,dir,anim};
+      m.position.copy(home); m.quaternion.fromArray(p.q); m.userData={i,home,dir,anim,hex:m.userData.hex};
       root.add(m); meshes.push(m);
     }
   });
@@ -414,7 +478,9 @@ async function updateGhost(){
   updateHint(); need();
 }
 function updateHint(){
+  if(PART&&CATALOG) refreshTools();
   const h=$('hintL');
+  if(mode==='view'){ h.hidden=false; h.textContent=t(view2d?'galleryHint':'viewHint'); return; }
   if(mode!=='build'){h.hidden=true;return;} h.hidden=false;
   if(selected>=0){h.textContent=t('hSel',PART[model.parts[selected].sid].name); return;}
   if(!armed){h.textContent=t(model.parts.length?'hPick':'hFirst'); return;}
@@ -453,19 +519,21 @@ const sameHover=(a,b)=>a&&b&&a.type===b.type&&(a.type==='conn'?(a.c.i===b.c.i&&a
 let down=null, moveEv=null, moveRaf=0;
 canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,t:performance.now()};});
 canvas.addEventListener('pointermove',e=>{
+  if(mode==='view'){ if(e.pointerType==='mouse'&&!e.buttons) viewPoint(e); return; }
   if(mode!=='build'||!armed||e.pointerType!=='mouse'||e.buttons) return;
   moveEv=e; if(moveRaf) return;           // at most one pick per frame
   moveRaf=requestAnimationFrame(()=>{ moveRaf=0; const ev=moveEv; if(!ev||!armed) return; const h=pick(ev); if(!sameHover(h,hover)){hover=h; ptIdx=0; updateGhost();} });
 });
 canvas.addEventListener('pointerup',e=>{
   if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6||e.button>0){down=null;return;} down=null;
+  if(mode==='view'){ viewPoint(e,true); return; }
   if(mode!=='build') return;
   const h=pick(e);
   if(armed){
     if(e.pointerType==='mouse'){ if(!sameHover(h,hover)){hover=h;ptIdx=0;} if(hover) updateGhost().then(place); return; }
     if(h&&sameHover(h,hover)) place(); else {hover=h;ptIdx=0;updateGhost();}
   } else {
-    selected=(h&&h.type==='part')?h.i:-1; $('tDel').hidden=selected<0; syncScene(); updateHint();
+    selected=(h&&h.type==='part')?h.i:-1; if(selected>=0) sfx('pick'); syncScene(); updateHint();
   }
 });
 
@@ -476,6 +544,7 @@ function place(){
   if(model.parts.length>=MAX_PARTS) return;
   snapshot();
   const r=a=>a.map(x=>Math.round(x*1000)/1000);
+  sfx('place');
   model.parts.push({sid:armed.sid,col:armed.col,hex:armed.hex,p:r(pose.pos.toArray()),q:r(pose.q.toArray()),dir:r(pose.dir.toArray()),step:model.step});
   hover=null; afterChange();
 }
@@ -484,9 +553,9 @@ $('tPlace').onclick=place;
 $('tRot').onclick=()=>{spin=(spin+1)%4; updateGhost();};
 $('tPt').onclick=()=>{ptIdx++; updateGhost();};
 $('tTilt').onclick=()=>{tilt=(tilt+1)%3; updateGhost();};
-$('tUndo').onclick=()=>{ if(!undoStack.length) return; model=JSON.parse(undoStack.pop()); selected=-1; $('tDel').hidden=true; $('mname').value=displayName(model.name); $('curStep').textContent=model.step; afterChange(); };
-$('tDel').onclick=()=>{ if(selected<0) return; snapshot(); model.parts.splice(selected,1); selected=-1; $('tDel').hidden=true; afterChange(); };
-$('tStep').onclick=()=>{ const maxUsed=Math.max(0,...model.parts.map(p=>p.step)); if(maxUsed<model.step){toast(t('tStepEmpty',model.step));return;} snapshot(); model.step++; $('curStep').textContent=model.step; saveDraft(); toast(t('tStepStart',model.step)); };
+$('tUndo').onclick=()=>{ if(!undoStack.length){ sfx('err'); return; } sfx('undo'); model=JSON.parse(undoStack.pop()); selected=-1; $('tDel').hidden=true; $('mname').value=displayName(model.name); $('curStep').textContent=model.step; afterChange(); };
+$('tDel').onclick=()=>{ if(selected<0) return; sfx('del'); snapshot(); model.parts.splice(selected,1); selected=-1; $('tDel').hidden=true; afterChange(); };
+$('tStep').onclick=()=>{ const maxUsed=Math.max(0,...model.parts.map(p=>p.step)); if(maxUsed<model.step){sfx('err'); toast(t('tStepEmpty',model.step));return;} sfx('step'); snapshot(); model.step++; $('curStep').textContent=model.step; saveDraft(); toast(t('tStepStart',model.step)); };
 $('mname').oninput=e=>{model.name=e.target.value; edited=true; saveDraft();};
 function closeSheet(){ const s=document.querySelector('.sheet'); if(s){s.remove(); return true;} return false; }
 addEventListener('keydown',e=>{
@@ -500,9 +569,46 @@ addEventListener('keydown',e=>{
   else if((k==='delete'||k==='backspace')&&selected>=0) $('tDel').click();
   else if(k==='enter'&&tg!=='BUTTON'&&tg!=='A') place();   // Enter on a focused button must only press that button
   else if(mode==='instr'&&k==='arrowright') $('iNext').click(); else if(mode==='instr'&&k==='arrowleft') $('iPrev').click();
+  else if(mode==='view'&&view2d&&k==='arrowright') $('gNext').click(); else if(mode==='view'&&view2d&&k==='arrowleft') $('gPrev').click();
 });
 function disarm(){armed=null; hover=null; renderLib(); rebuildDots(); updateGhost();}
 let toastT; function toast(s){let el=document.querySelector('.toast'); if(!el){el=document.createElement('div'); el.className='toast'; el.setAttribute('role','status'); document.body.append(el);} el.textContent=s; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,2400);}
+
+/* ---------- sound effects (synthesized, no files) ---------- */
+let sndOn=true; try{ sndOn=localStorage.getItem('vexgo-sound')!=='0'; }catch{}
+let actx=null;
+function sfx(k){
+  if(!sndOn) return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)(); if(actx.state==='suspended') actx.resume();
+    const T=actx.currentTime;
+    const tone=(f,d,type='sine',v=.12,at=0,f2)=>{ const o=actx.createOscillator(), g=actx.createGain(); o.type=type; o.frequency.setValueAtTime(f,T+at); if(f2) o.frequency.exponentialRampToValueAtTime(f2,T+at+d);
+      g.gain.setValueAtTime(0,T+at); g.gain.linearRampToValueAtTime(v,T+at+.006); g.gain.exponentialRampToValueAtTime(.0001,T+at+d); o.connect(g).connect(actx.destination); o.start(T+at); o.stop(T+at+d+.03); };
+    ({ pick:()=>tone(880,.09,'triangle',.11),
+       place:()=>{ tone(1500,.03,'square',.04); tone(560,.1,'triangle',.16,.025); },
+       del:()=>tone(320,.16,'triangle',.15,0,140),
+       undo:()=>tone(700,.11,'sine',.11,0,420),
+       step:()=>{ tone(660,.1,'sine',.1); tone(990,.16,'sine',.1,.09); },
+       err:()=>tone(170,.18,'sawtooth',.05),
+       ui:()=>tone(1300,.035,'triangle',.05) })[k]?.();
+  }catch{}
+}
+const SVG_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+const SVG_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+function renderSnd(){ const b=$('bSnd'); b.innerHTML=sndOn?SVG_ON:SVG_OFF; b.setAttribute('aria-pressed',sndOn); b.setAttribute('aria-label',t('sound')); b.title=t('sound'); }
+$('bSnd').onclick=()=>{ sndOn=!sndOn; try{localStorage.setItem('vexgo-sound',sndOn?'1':'0');}catch{} renderSnd(); sfx('ui'); };
+
+/* tools shown depend on what the user is doing: holding a part, a part selected, or nothing */
+function refreshTools(){
+  const holding=!!armed&&mode==='build', sel=selected>=0;
+  for(const id of ['tRot','tPt','tTilt','tPlace']) $(id).hidden=!holding;
+  $('tDel').hidden=!sel; $('tCancel').hidden=!(holding||sel);
+  $('tCancel').textContent=t(holding?'putBack':'deselect');
+  const h=$('hold'); h.hidden=!holding;
+  if(holding){ h.querySelector('img').src=`t/${armed.sid}_${armed.col}.png`; h.querySelector('span').textContent=PART[armed.sid].name; }
+}
+$('tCancel').onclick=()=>{ sfx('ui'); if(armed){ disarm(); return; } if(selected>=0){ selected=-1; syncScene(); updateHint(); } };
+canvas.addEventListener('contextmenu',e=>{ if(armed||selected>=0){ e.preventDefault(); $('tCancel').click(); } });
 
 /* ---------- library and BOM ---------- */
 let curCat='beam';
@@ -519,8 +625,8 @@ function renderLib(){
     b.innerHTML=`<img alt="" loading="lazy" decoding="async" src="t/${P.id}_${c.c}.png"><span class="nm"></span><span class="ct ${n>c.qty?'over':''}">${n} / ${c.qty}</span>`;
     b.querySelector('.nm').textContent=P.name;
     b.onclick=async()=>{
-      if(armed&&armed.sid===P.id&&armed.col===c.c){disarm();return;}
-      armed={sid:P.id,col:c.c,hex:c.hex}; selected=-1; $('tDel').hidden=true; ptIdx=0; renderLib();
+      if(armed&&armed.sid===P.id&&armed.col===c.c){sfx('ui'); disarm();return;}
+      sfx('pick'); armed={sid:P.id,col:c.c,hex:c.hex}; selected=-1; $('tDel').hidden=true; ptIdx=0; renderLib();
       try{ await ensureGeo(P.id); }catch{ armed=null; renderLib(); toast(t('tLoadFail')); return; }
       rebuildDots(); if(hover) updateGhost(); else updateHint();
     };
@@ -557,8 +663,8 @@ function animate(now){   // returns true while the fly-in is running so the loop
   if(t0>=1) animOn=false;
   return true;
 }
-$('iPrev').onclick=()=>showStep(stepIdx-1);
-$('iNext').onclick=()=>showStep(stepIdx+1);
+$('iPrev').onclick=()=>{sfx('ui'); showStep(stepIdx-1);};
+$('iNext').onclick=()=>{sfx('ui'); showStep(stepIdx+1);};
 $('iRange').oninput=e=>showStep(+e.target.value-1);
 
 function frame(all=true){
@@ -573,16 +679,81 @@ function frame(all=true){
   controls.target.copy(c); camera.position.copy(c).addScaledVector(dir,d); need();
 }
 async function setMode(m){
-  mode=m; $('mBuild').setAttribute('aria-pressed',m==='build'); $('mInstr').setAttribute('aria-pressed',m==='instr');
-  $('buildSide').style.display=m==='build'?'contents':'none'; $('instrSide').hidden=m!=='instr';
+  mode=m; for(const [id,k] of [['mBuild','build'],['mInstr','instr'],['mView','view']]) $(id).setAttribute('aria-pressed',m===k);
+  $('buildSide').style.display=m==='build'?'contents':'none'; $('instrSide').hidden=m!=='instr'; $('viewSide').hidden=m!=='view';
   $('tools').hidden=m!=='build'; $('instrNav').hidden=m!=='instr'; $('stepChip').hidden=m!=='build';
+  $('gallery').hidden=!(m==='view'&&view2d); $('tag').hidden=true; hiSet=new Set();
   selected=-1; $('tDel').hidden=true; hover=null;
   try{
     if(m==='instr'){ disarm(); await geoAll([...new Set(model.parts.map(p=>p.sid))]); await showStep(0); frame(); location.hash='instructions'; }
+    else if(m==='view'){ disarm(); await geoAll([...new Set(model.parts.map(p=>p.sid))]); await syncScene(); frame(); renderViewParts(); location.hash='showcase'; if(view2d) showGallery(); }
     else { await syncScene(); rebuildDots(); updateGhost(); location.hash=''; }
   }catch{ toast(t('tLoadFail')); }
+  updateHint();
 }
-$('mBuild').onclick=()=>setMode('build'); $('mInstr').onclick=()=>setMode('instr');
+/* ---------- showcase: turn the model, tap a part to see its name, or flip through 10 pictures ---------- */
+let view2d=false, hiSet=new Set(), hiKey=null, gal=null, galIdx=0;
+function highlight(set,dim){ hiSet=set; for(const m of meshes) m.material=mat(m.userData.hex,set.has(m.userData.i)?'s':(dim&&set.size?'d':'')); need(); }
+function viewPoint(e,tap){
+  setNdc(e); ray.setFromCamera(ndc,camera);
+  const hit=ray.intersectObjects(meshes,false)[0], tag=$('tag');
+  if(!hit){ if(tap||hiKey==='part'){ highlight(new Set()); hiKey=null; tag.hidden=true; markViewParts(); } return; }
+  const i=hit.object.userData.i, p=model.parts[i]; if(!p) return;
+  if(!(hiKey==='part'&&hiSet.has(i))){ highlight(new Set([i])); hiKey='part'; markViewParts(); if(tap) sfx('pick'); }
+  const r=stage.getBoundingClientRect(), P=PART[p.sid];
+  tag.innerHTML=''; tag.append(P.name); const sm=document.createElement('small'); sm.textContent=P.file+'  Step '+p.step; tag.append(sm);
+  tag.style.left=Math.min(r.width-60,Math.max(60,e.clientX-r.left))+'px'; tag.style.top=Math.max(48,e.clientY-r.top)+'px'; tag.hidden=false;
+}
+function renderViewParts(){
+  const cnt={}; for(const p of model.parts){ const k=p.sid+'|'+p.col; cnt[k]=(cnt[k]||0)+1; }
+  const ul=$('viewParts'); ul.innerHTML='';
+  for(const [k,n] of Object.entries(cnt).sort((a,b)=>PART[a[0].split('|')[0]].name<PART[b[0].split('|')[0]].name?-1:1)){
+    const [sid,col]=k.split('|'); const li=document.createElement('li'); li.dataset.k=k; li.tabIndex=0; li.setAttribute('role','button');
+    li.innerHTML=`<img alt="" src="t/${sid}_${col}.png"><span></span><span class="q">x${n}</span>`; li.children[1].textContent=PART[sid].name;
+    li.onclick=()=>{ sfx('ui'); $('tag').hidden=true;
+      if(hiKey===k){ highlight(new Set()); hiKey=null; }
+      else { const s=new Set(); model.parts.forEach((p,i)=>{ if(p.sid+'|'+p.col===k) s.add(i); }); highlight(s,true); hiKey=k; if(view2d) setView2d(false); }
+      markViewParts(); };
+    li.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); li.click(); } };
+    ul.append(li);
+  }
+}
+function markViewParts(){ for(const li of $('viewParts').children) li.setAttribute('aria-pressed',li.dataset.k===hiKey); }
+/* 10 pictures at 36 degree steps around the model, rendered once per model and kept until it changes */
+async function makeGallery(){
+  const key=model.parts.length+'|'+JSON.stringify(model.parts.at(-1)||0)+'|'+model.name;
+  if(gal&&gal.key===key) return gal;
+  $('gImg').removeAttribute('src'); toast(t('making'));
+  await geoAll([...new Set(model.parts.map(p=>p.sid))]); await syncScene(); highlight(new Set()); hiKey=null; markViewParts();
+  const b=new THREE.Box3(); for(const m of meshes) b.expandByObject(m);
+  if(b.isEmpty()) return gal={key,imgs:[]};
+  const c=b.getCenter(new THREE.Vector3()), rad=b.getSize(new THREE.Vector3()).length()/2;
+  const cam=camera.clone(), vf=cam.fov*Math.PI/360, hf=Math.atan(Math.tan(vf)*cam.aspect), d=Math.max(90,rad/Math.sin(Math.min(vf,hf))*1.05), el=24*Math.PI/180;
+  const vis=[ghostRoot.visible,hl.visible]; ghostRoot.visible=false; hl.visible=false;
+  const cc=new THREE.Color(), ca=renderer.getClearAlpha(); renderer.getClearColor(cc); renderer.setClearColor(new THREE.Color(css('--mat')||'#e3e9f0'),1);   // JPEG has no alpha, paint the mat color behind
+  const imgs=[];
+  for(let k=0;k<10;k++){
+    const a=-Math.PI/2+k*Math.PI/5;
+    cam.position.set(c.x+Math.cos(a)*Math.cos(el)*d, c.y+Math.sin(a)*Math.cos(el)*d, c.z+Math.sin(el)*d); cam.lookAt(c); cam.updateMatrixWorld();
+    renderer.render(scene,cam); imgs.push(renderer.domElement.toDataURL('image/jpeg',.85));
+    await new Promise(r=>setTimeout(r,0));
+  }
+  renderer.setClearColor(cc,ca); ghostRoot.visible=vis[0]; hl.visible=vis[1]; need();
+  return gal={key,imgs};
+}
+function showFrame(k){ if(!gal||!gal.imgs.length) return; galIdx=(k+gal.imgs.length)%gal.imgs.length; $('gImg').src=gal.imgs[galIdx]; $('gRange').max=gal.imgs.length; $('gRange').value=galIdx+1; $('gCnt').textContent=(galIdx+1)+' / '+gal.imgs.length; }
+async function showGallery(){ $('gallery').hidden=false; await makeGallery(); showFrame(galIdx); }
+function setView2d(v){ view2d=v; $('v3d').setAttribute('aria-pressed',!v); $('v2d').setAttribute('aria-pressed',v); $('tag').hidden=true; if(v) showGallery(); else { $('gallery').hidden=true; need(); } updateHint(); }
+$('v3d').onclick=()=>{ sfx('ui'); setView2d(false); }; $('v2d').onclick=()=>{ sfx('ui'); setView2d(true); };
+$('gPrev').onclick=()=>{ sfx('ui'); showFrame(galIdx-1); }; $('gNext').onclick=()=>{ sfx('ui'); showFrame(galIdx+1); };
+$('gRange').oninput=e=>showFrame(+e.target.value-1);
+{ // swipe or drag on the picture: every 40 px is one view
+  let sx=null; const g=$('gallery');
+  g.addEventListener('pointerdown',e=>{ if(e.target.closest('.gnav')) return; sx=e.clientX; g.setPointerCapture(e.pointerId); });
+  g.addEventListener('pointermove',e=>{ if(sx===null) return; const dx=e.clientX-sx; if(Math.abs(dx)>=40){ showFrame(galIdx+(dx<0?1:-1)); sx=e.clientX; } });
+  g.addEventListener('pointerup',()=>{ sx=null; }); g.addEventListener('pointercancel',()=>{ sx=null; });
+}
+$('mBuild').onclick=()=>{sfx('ui'); setMode('build');}; $('mInstr').onclick=()=>{sfx('ui'); setMode('instr');}; $('mView').onclick=()=>{sfx('ui'); setMode('view');};
 
 /* ---------- storage and model validation ---------- */
 function saveDraft(){
@@ -618,7 +789,8 @@ async function loadModel(m,id,src){
   $('mname').value=model.name; $('curStep').textContent=model.step;
   try{ await geoAll([...new Set(model.parts.map(p=>p.sid))]); }catch{ toast(t('tLoadFail')); return; }
   rebuildConns(); renderBOM(); renderLib();
-  if(mode==='instr'){await showStep(0);} else {await syncScene(); rebuildDots(); updateGhost();}
+  gal=null; galIdx=0; hiSet=new Set(); hiKey=null; $('tag').hidden=true;
+  if(mode==='instr'){await showStep(0);} else if(mode==='view'){ await syncScene(); renderViewParts(); if(view2d){ frame(); await showGallery(); } } else {await syncScene(); rebuildDots(); updateGhost();}
   frame(); saveDraft();
 }
 function sheet(html){
@@ -628,44 +800,74 @@ function sheet(html){
 }
 const fetchJson=async u=>{const r=await fetch(u); if(!r.ok) throw new Error(u+' '+r.status); return r.json();};
 const bname=b=>(lang==='en'&&b.name_en)?b.name_en:b.name;
+/* small picture of the current view for the Open panel; ghost and hole dots are hidden while it is taken */
+function snapThumb(){
+  try{
+    const vis=[ghostRoot.visible,hl.visible,dotsF&&dotsF.visible,dotsM&&dotsM.visible];
+    ghostRoot.visible=false; hl.visible=false; if(dotsF) dotsF.visible=false; if(dotsM) dotsM.visible=false;
+    renderer.render(scene,camera);
+    const src=renderer.domElement, W=320, H=200, c=document.createElement('canvas'); c.width=W; c.height=H;
+    const x=c.getContext('2d'); x.fillStyle=css('--mat')||'#e3e9f0'; x.fillRect(0,0,W,H);
+    const k=Math.max(W/src.width,H/src.height); x.drawImage(src,(W-src.width*k)/2,(H-src.height*k)/2,src.width*k,src.height*k);
+    ghostRoot.visible=vis[0]; hl.visible=vis[1]; if(dotsF) dotsF.visible=vis[2]; if(dotsM) dotsM.visible=vis[3]; need();
+    return c.toDataURL('image/jpeg',.72);
+  }catch{ return null; }
+}
+const LOCAL_KEY='vexgo-models';
+function localList(){ try{ const a=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); return Array.isArray(a)?a:[]; }catch{ return []; } }
+function localWrite(a){ localStorage.setItem(LOCAL_KEY,JSON.stringify(a)); }
 $('bSave').onclick=async()=>{
   model.name=$('mname').value.trim()||t('modelDefault'); edited=true;
-  if(!db){ saveDraft(); toast(t('tSavedLocal')); return; }
-  const body={name:model.name,ref:model.ref||null,parts:model.parts.map(({sid,col,p,q,dir,step})=>({sid,col,p,q,dir,step})),step:model.step,updated:Date.now(),count:model.parts.length};
+  const body={name:model.name,ref:model.ref||null,parts:model.parts.map(({sid,col,p,q,dir,step})=>({sid,col,p,q,dir,step})),step:model.step,updated:Date.now(),count:model.parts.length,thumb:snapThumb()};
+  if(!db){
+    const list=localList(); let id=modelId&&String(modelId).startsWith('l')?modelId:null;
+    if(!id) id='l'+Date.now();
+    const i=list.findIndex(m=>m.id===id); const rec={...body,id};
+    if(i>=0) list[i]=rec; else list.unshift(rec);
+    try{ localWrite(list.slice(0,40)); modelId=id; saveDraft(); sfx('step'); toast(t('tSavedLocal',model.name)); }
+    catch{ sfx('err'); toast(t('tQuotaLocal')); }
+    return;
+  }
   try{
     if(modelId) await db.collection('models').doc(modelId).set(body);
     else { const ref=await db.collection('models').add(body); modelId=ref.id; }
-    saveDraft(); toast(t('tSavedDb',model.name));
+    saveDraft(); sfx('step'); toast(t('tSavedDb',model.name));
   }catch(e){ toast(e&&e.code==='quota_exceeded'?t('tQuota'):t('tSaveFail')); }
 };
 $('bOpen').onclick=async()=>{
-  const s=sheet(`<h2></h2><ul class="mlist" id="ml"><li class="muted"></li></ul><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="mNew"></button><button class="btn" id="mClose"></button></div>`);
-  s.querySelector('h2').textContent=t('openTitle'); s.querySelector('.muted').textContent=t('loadingShort');
-  s.querySelector('#mNew').textContent=t('startNew'); s.querySelector('#mClose').textContent=t('close');
+  sfx('ui');
+  const s=sheet(`<div class="ohead"><h2></h2><button class="btn" id="mClose"></button></div><h3 id="hEx"></h3><div class="mgrid" id="gEx"></div><h3 id="hMine"></h3><div class="mgrid" id="gMine"></div>`);
+  s.querySelector('.box').classList.add('wide');
+  s.querySelector('h2').textContent=t('openTitle'); s.querySelector('#mClose').textContent=t('close');
+  s.querySelector('#hEx').textContent=t('examples'); s.querySelector('#hMine').textContent=t('mine');
   s.querySelector('#mClose').onclick=()=>s.remove();
-  s.querySelector('#mNew').onclick=()=>{s.remove(); loadModel({name:t('newModel'),parts:[],step:1});};
-  const ml=s.querySelector('#ml');
-  const list=[];
+  const date=u=>u?new Date(Number(u)).toLocaleDateString(lang==='th'?'th-TH':'en-GB'):'';
+  const card=(grid,{name,meta,thumb,ph,onOpen,onDel})=>{
+    const d=document.createElement('div'); d.className='mcard';
+    d.innerHTML=`<button class="mopen">${thumb?'<img alt="" loading="lazy">':'<span class="ph"></span>'}<span class="tx"><span class="nm"></span><span class="meta"></span></span></button>`;
+    if(thumb) d.querySelector('img').src=thumb; else d.querySelector('.ph').textContent=ph||'';
+    d.querySelector('.nm').textContent=String(name||'').slice(0,80); d.querySelector('.meta').textContent=meta||'';
+    d.querySelector('.mopen').onclick=()=>{ s.remove(); onOpen(); };
+    if(onDel){ const b=document.createElement('button'); b.className='btn mdel'; b.textContent=t('del');
+      b.onclick=async()=>{ if(b.dataset.c!=='1'){ b.dataset.c='1'; b.textContent=t('delConfirm'); return; } try{ await onDel(); sfx('del'); d.remove(); }catch{ toast(t('tDelFail')); } };
+      d.append(b); }
+    grid.append(d); return d;
+  };
+  const gEx=s.querySelector('#gEx'), gMine=s.querySelector('#gMine');
+  card(gMine,{name:t('startNew'),meta:'',ph:'+',onOpen:()=>loadModel({name:t('newModel'),parts:[],step:1})});
+  // my models: this device, plus the shared database when it exists
+  for(const m of localList()) card(gMine,{name:m.name,meta:t('meta',Number(m.count)||0,date(m.updated)),thumb:typeof m.thumb==='string'&&m.thumb.startsWith('data:image/')?m.thumb:null,ph:'',
+    onOpen:()=>loadModel(m,m.id), onDel:async()=>{ localWrite(localList().filter(x=>x.id!==m.id)); if(modelId===m.id) modelId=null; }});
+  if(db){ try{ const q=await db.collection('models').orderBy('updated','desc').limit(50).get();
+    q.docs.forEach(dd=>{ const m={id:dd.id,...dd.data()}; card(gMine,{name:m.name,meta:t('meta',Number(m.count)||0,date(m.updated)),thumb:typeof m.thumb==='string'&&m.thumb.startsWith('data:image/')?m.thumb:null,
+      onOpen:()=>loadModel(m,m.id), onDel:async()=>{ await db.collection('models').doc(m.id).delete(); if(modelId===m.id) modelId=null; }}); }); }catch{} }
   try{
     const builtin=await fetchJson('models.json');
-    const loaded=await Promise.all(builtin.map(b=>fetchJson(b.file).then(m=>({...m,name:bname(b),id:null,builtin:true,file:b.file,count:m.parts.length})).catch(()=>null)));
-    list.push(...loaded.filter(Boolean));
+    for(const bi of builtin){
+      card(gEx,{name:bname(bi),meta:t('meta',Number(bi.count)||0,t('example')),thumb:bi.thumb||null,
+        onOpen:async()=>{ try{ loadModel(await fetchJson(bi.file),null,bi.file); }catch{ toast(t('tLoadFail')); } }});
+    }
   }catch{}
-  if(db){ try{ const q=await db.collection('models').orderBy('updated','desc').limit(50).get(); q.docs.forEach(d=>list.push({id:d.id,...d.data()})); }catch{} }
-  ml.innerHTML='';
-  if(!list.length){ ml.innerHTML='<li class="muted"></li>'; ml.firstChild.textContent=t('noSaved'); }
-  for(const m of list){
-    const li=document.createElement('li');
-    li.innerHTML=`<div class="grow"><div class="nm" style="font-weight:600"></div><div class="meta"></div></div><button class="btn primary"></button>${m.builtin?'':'<button class="btn"></button>'}`;
-    li.querySelector('.nm').textContent=String(m.name||'').slice(0,80);
-    const cnt=Number(m.count)||(Array.isArray(m.parts)?m.parts.length:0);
-    const when=m.builtin?t('example'):(m.updated?new Date(Number(m.updated)).toLocaleDateString(lang==='th'?'th-TH':'en-GB'):'');
-    li.querySelector('.meta').textContent=t('meta',cnt,when);
-    const [bo,bd]=li.querySelectorAll('button'); bo.textContent=t('openBtn'); if(bd) bd.textContent=t('del');
-    bo.onclick=()=>{s.remove(); loadModel(m,m.id,m.builtin?m.file:null);};
-    if(bd) bd.onclick=async()=>{ if(bd.dataset.c!=='1'){bd.dataset.c='1'; bd.textContent=t('delConfirm'); return;} try{await db.collection('models').doc(m.id).delete(); li.remove(); if(modelId===m.id) modelId=null;}catch{toast(t('tDelFail'));} };
-    ml.append(li);
-  }
 };
 $('bMore').onclick=()=>{
   const s=sheet(`<h2></h2><p class="muted" style="margin:0"></p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="fx"></button><button class="btn" id="fi"></button><button class="btn" id="fc"></button></div>`);
@@ -699,11 +901,12 @@ function applyLang(){
   if(isDefaultName(model.name)){ model.name=t('newModel'); }
   $('mname').value=displayName(model.name);
   if($('loading')&&!$('loading').hidden) $('loading').textContent=t('loading');
-  renderTabs(); renderLib(); renderBOM(); updateHint();
+  renderTabs(); renderLib(); renderBOM(); updateHint(); if($('bSnd')) renderSnd();
+  if(mode==='view') renderViewParts();
   if(mode==='instr'&&model.parts.length){ const k=stepIdx; showStep(k); } else if(mode==='instr'){ showStep(0); }
 }
 function setLang(l){ lang=l; try{localStorage.setItem('vexgo-lang',l);}catch{} applyLang(); }
-$('lTh').onclick=()=>setLang('th'); $('lEn').onclick=()=>setLang('en');
+$('lTh').onclick=()=>{sfx('ui'); setLang('th');}; $('lEn').onclick=()=>{sfx('ui'); setLang('en');};
 
 /* ---------- boot ---------- */
 function loop(now){
@@ -726,7 +929,7 @@ function loop(now){
   if(!start){ try{ const list=await fetchJson('models.json'); start={model:await fetchJson(list[0].file),modelId:null,src:list[0].file}; }catch{} }
   if(start) await loadModel(start.model,start.modelId,start.src);
   $('loading').hidden=true; updateHint();
-  if(location.hash==='#instructions') setMode('instr');
+  if(location.hash==='#instructions') setMode('instr'); else if(location.hash==='#showcase') setMode('view');
   if(window.claude&&claude.use){ claude.use('db').then(d=>{db=d;}).catch(()=>{}); }
 })();
 window.__vx={meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
