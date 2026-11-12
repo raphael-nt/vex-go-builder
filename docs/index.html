@@ -132,6 +132,8 @@ main.side-off aside{overflow:hidden;border-right:0}
 .slide{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;padding:0 6px;color:var(--ink);flex:none}
 .slide input{width:150px;accent-color:var(--accent)}
 .tools #tPick{order:-2}
+.tools #tMulti{order:9}
+#tMulti[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .tools #hold{order:-3} .tools #tCancel{order:-2} .tools #tPlace{order:-1}
 .mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .mlist li{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
@@ -225,6 +227,9 @@ main.side-off aside{overflow:hidden;border-right:0}
         <button class="btn" id="tUndo">Undo</button>
         <button class="btn primary" id="tPick" hidden data-i18n="pickUp"></button>
         <label class="slide" id="slideBox" hidden><span data-i18n="slide"></span><input type="range" id="tSlide" step="0.25"></label>
+        <button class="btn" id="tGroup" hidden><span data-i18n="group"></span><kbd>G</kbd></button>
+        <button class="btn" id="tUngroup" hidden data-i18n="ungroup"></button>
+        <button class="btn" id="tMulti" hidden aria-pressed="false" data-i18n="multi"></button>
         <button class="btn warn" id="tDel" hidden data-i18n="delPart"></button>
         <button class="btn" id="tCancel" hidden></button>
         <button class="btn" id="tStep" data-i18n="newStep"></button>
@@ -270,14 +275,14 @@ th:{
   prev:'ก่อนหน้า',next:'ถัดไป',chooseStep:'เลือก Step',loading:'กำลังโหลดชิ้นส่วน',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pin และ Connector',tab_motion:'Gear Wheel Shaft',tab_other:'อื่นๆ',tab_elec:'Electronics',
   iqName:'ชื่อใน VEX IQ Legal Parts',
-  hSel:'{0} ถูกเลือก กด ถอดออก เพื่อย้ายไปที่อื่น หรือแตะที่ว่างเพื่อยกเลิก',hSelSlide:'{0} ถูกเลือก ลากแถบ เลื่อนบนแกน หรือกดลูกศรขึ้นลง กด ถอดออก เพื่อย้าย',pickUp:'ถอดออก',slide:'เลื่อนบนแกน',
+  hSel:'{0} ถูกเลือก กด ถอดออก เพื่อย้าย Shift+คลิก หรือ เลือกหลายชิ้น เพื่อเลือกเพิ่ม',hSelSlide:'{0} ถูกเลือก ลากแถบ เลื่อนบนแกน หรือกดลูกศรขึ้นลง กด ถอดออก เพื่อย้าย',pickUp:'ถอดออก',slide:'เลื่อนบนแกน',
   hPick:'เลือกชิ้นจากคลัง หรือแตะชิ้นบนโมเดลเพื่อเลือก',
   hFirst:'เลือกชิ้นแรกจากคลัง แล้วแตะบนพื้นเพื่อวาง',
   hArmed:'{0} แตะจุดบนโมเดล หรือแตะพื้นเพื่อวาง',
   hConn:'{0} รู {1} จาก {2} เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง',hPin:'{0} ปลาย {1}/{2} เสียบลึก {3}/{4} ช่อง กด T สลับปลาย กด D หรือเลื่อนลูกกลิ้งเปลี่ยนความลึก',hLockShort:'(ล็อกรูไว้)',depth:'ลึก',hLock:'ล็อกรูนี้ไว้ เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง ปล่อย T เพื่อปลดล็อก',hConnTouch:'{0} รู {1} จาก {2} แตะซ้ำหรือกด วาง',
   hGround:'{0} วางบนพื้น แตะซ้ำหรือกด วาง',
   tStepEmpty:'Step {0} ยังไม่มีชิ้น วางชิ้นก่อนแล้วค่อยขึ้น Step ใหม่',tStepStart:'เริ่ม Step {0}',
-  tSavedLocal:'บันทึก {0} ไว้ในเครื่องนี้แล้ว เปิดดูได้ที่ เปิดโมเดล',tQuotaLocal:'พื้นที่ในเครื่องเต็ม ลบโมเดลเก่าที่ เปิดโมเดล ก่อน',putBack:'วางคืน',fullscreen:'เต็มจอ',exitFull:'ออกจากเต็มจอ',resizeHint:'ลากเพื่อปรับขนาด ดับเบิลคลิกเพื่อย่อหรือขยาย',viewParts:'ชิ้นในโมเดลนี้',viewHint:'แตะชิ้นส่วนเพื่อดูชื่อ ลากเพื่อหมุนดูรอบๆ',galleryHint:'ปัดซ้ายขวาเพื่อดูรอบตัวหุ่น',angleOf:'เลือกมุมมอง',making:'กำลังสร้างภาพ 10 มุม',deselect:'ยกเลิกเลือก',sound:'เสียง',examples:'โมเดลตัวอย่าง',mine:'โมเดลของฉัน',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
+  tSavedLocal:'บันทึก {0} ไว้ในเครื่องนี้แล้ว เปิดดูได้ที่ เปิดโมเดล',tQuotaLocal:'พื้นที่ในเครื่องเต็ม ลบโมเดลเก่าที่ เปิดโมเดล ก่อน',putBack:'วางคืน',group:'รวมกลุ่ม',ungroup:'แยกกลุ่ม',multi:'เลือกหลายชิ้น',groupOf:'กลุ่ม {0} ชิ้น',hMulti:'เลือกอยู่ {0} ชิ้น กด รวมกลุ่ม เพื่อให้ย้ายด้วยกัน หรือ ถอดออก เพื่อยกทั้งหมด',tGrouped:'รวม {0} ชิ้นเป็นกลุ่มแล้ว แตะชิ้นไหนก็เลือกทั้งกลุ่ม',tUngrouped:'แยกกลุ่มแล้ว',fullscreen:'เต็มจอ',exitFull:'ออกจากเต็มจอ',resizeHint:'ลากเพื่อปรับขนาด ดับเบิลคลิกเพื่อย่อหรือขยาย',viewParts:'ชิ้นในโมเดลนี้',viewHint:'แตะชิ้นส่วนเพื่อดูชื่อ ลากเพื่อหมุนดูรอบๆ',galleryHint:'ปัดซ้ายขวาเพื่อดูรอบตัวหุ่น',angleOf:'เลือกมุมมอง',making:'กำลังสร้างภาพ 10 มุม',deselect:'ยกเลิกเลือก',sound:'เสียง',examples:'โมเดลตัวอย่าง',mine:'โมเดลของฉัน',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
   tQuota:'พื้นที่เก็บเต็ม ลบโมเดลเก่าก่อน',tSaveFail:'บันทึกไม่ได้ สิทธิ์นี้ดูได้อย่างเดียว ใช้ ไฟล์ แทน',
   openTitle:'เปิดโมเดล',loadingShort:'กำลังโหลด',startNew:'เริ่มโมเดลใหม่',close:'ปิด',openBtn:'เปิด',del:'ลบ',delConfirm:'ยืนยันลบ',
   noSaved:'ยังไม่มีโมเดลที่บันทึกไว้ ประกอบแล้วกด บันทึก',meta:'{0} ชิ้น, {1}',example:'โมเดลตัวอย่าง',
@@ -296,14 +301,14 @@ en:{
   prev:'Back',next:'Next',chooseStep:'Choose step',loading:'Loading parts',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pins and Connectors',tab_motion:'Gears, Wheels, Shafts',tab_other:'Other',tab_elec:'Electronics',
   iqName:'Name in VEX IQ Legal Parts',
-  hSel:'{0} selected. Press Take off to move it, or tap empty space to cancel',hSelSlide:'{0} selected. Drag Slide on shaft or use the up and down arrows. Press Take off to move it',pickUp:'Take off',slide:'Slide on shaft',
+  hSel:'{0} selected. Press Take off to move it. Shift+click or Select many to add parts',hSelSlide:'{0} selected. Drag Slide on shaft or use the up and down arrows. Press Take off to move it',pickUp:'Take off',slide:'Slide on shaft',
   hPick:'Pick a part from the library, or tap a part on the model to select it',
   hFirst:'Pick the first part from the library, then tap the floor to place it',
   hArmed:'{0} Tap a hole on the model, or tap the floor to place',
   hConn:'{0} hole {1} of {2}. Scroll or press T to change hole, click to place',hPin:'{0} end {1}/{2}, depth {3}/{4}. T flips the end, D or scroll changes the depth',hLockShort:'(hole locked)',depth:'Depth',hLock:'Hole locked. Scroll or press T to change hole, click to place. Release T to unlock',hConnTouch:'{0} hole {1} of {2}. Tap again or press Place',
   hGround:'{0} on the floor. Tap again or press Place',
   tStepEmpty:'Step {0} has no parts yet. Place a part before starting a new step',tStepStart:'Started step {0}',
-  tSavedLocal:'Saved {0} on this device. Find it in Open',tQuotaLocal:'Device storage is full. Delete an old model in Open first',putBack:'Put back',fullscreen:'Full screen',exitFull:'Exit full screen',resizeHint:'Drag to resize, double-click to collapse or restore',viewParts:'Parts in this model',viewHint:'Tap a part to see its name. Drag to turn the model',galleryHint:'Swipe left or right to look around the robot',angleOf:'Choose a view',making:'Making 10 pictures',deselect:'Deselect',sound:'Sound',examples:'Example models',mine:'My models',tSavedDb:'Saved {0}. Everyone with this link can see it',
+  tSavedLocal:'Saved {0} on this device. Find it in Open',tQuotaLocal:'Device storage is full. Delete an old model in Open first',putBack:'Put back',group:'Group',ungroup:'Ungroup',multi:'Select many',groupOf:'Group of {0} parts',hMulti:'{0} parts selected. Press Group to keep them together, or Take off to lift them all',tGrouped:'Grouped {0} parts. Tap any of them to select the whole group',tUngrouped:'Ungrouped',fullscreen:'Full screen',exitFull:'Exit full screen',resizeHint:'Drag to resize, double-click to collapse or restore',viewParts:'Parts in this model',viewHint:'Tap a part to see its name. Drag to turn the model',galleryHint:'Swipe left or right to look around the robot',angleOf:'Choose a view',making:'Making 10 pictures',deselect:'Deselect',sound:'Sound',examples:'Example models',mine:'My models',tSavedDb:'Saved {0}. Everyone with this link can see it',
   tQuota:'Storage is full. Delete an old model first',tSaveFail:'Could not save. You have view only access. Use File instead',
   openTitle:'Open model',loadingShort:'Loading',startNew:'Start a new model',close:'Close',openBtn:'Open',del:'Delete',delConfirm:'Confirm delete',
   noSaved:'No saved models yet. Build one and press Save',meta:'{0} parts, {1}',example:'example model',
@@ -425,17 +430,18 @@ function rebuildConns(){
   };
   freeConns=allConns.filter(c=>!taken(c));
 }
+const armedConns=()=>armed.group?armed.conns:PART[armed.sid].conn;
 function srcOptions(target){
-  const P=PART[armed.sid]; const out=[];
-  P.conn.forEach((c,j)=>{ if(compat(c.k,target.k)) out.push(j); });
-  out.sort((a,b)=>(isM(P.conn[b].k)-isM(P.conn[a].k)));
+  const C=armedConns(); const out=[];
+  C.forEach((c,j)=>{ if(compat(c.k,target.k)) out.push(j); });
+  out.sort((a,b)=>(isM(C[b].k)-isM(C[a].k)));
   return out;
 }
 /* Pins and shafts (parts whose connectors are all male): options are grouped by which end goes in,
    and inside a group sorted from shallow to deep, so the user picks the end (T) and the depth (D or scroll). */
 const maleOnly=sid=>PART[sid].conn.length>0&&PART[sid].conn.every(c=>isM(c.k));
 function optGroups(target){
-  if(!maleOnly(armed.sid)) return null;
+  if(armed.group||!maleOnly(armed.sid)) return null;
   const P=PART[armed.sid], gs=new Map();
   for(const j of srcOptions(target)){ const n=P.conn[j].n, key=n.map(x=>Math.round(x*10)).join(','); if(!gs.has(key)) gs.set(key,[]); gs.get(key).push(j); }
   const out=[...gs.values()];
@@ -450,7 +456,7 @@ function chosenOption(target){
   return {j:o[((ptIdx%o.length)+o.length)%o.length],idx:((ptIdx%o.length)+o.length)%o.length,n:o.length};
 }
 function snapPose(target,j,s){
-  const c=PART[armed.sid].conn[j], nB=V(c.n), pB=V(c.p);
+  const c=armedConns()[j], nB=V(c.n), pB=V(c.p);
   const q1=new THREE.Quaternion().setFromUnitVectors(nB,target.n.clone().negate());
   const qs=new THREE.Quaternion().setFromAxisAngle(target.n,s*Math.PI/2);
   const q=qs.multiply(q1);
@@ -459,7 +465,7 @@ function snapPose(target,j,s){
 }
 function groundPose(pt){
   const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),spin*Math.PI/2).multiply(TILTS[tilt]);
-  const b=PART[armed.sid].bounds; let minz=1e9;
+  const b=armed.group?armed.bounds:PART[armed.sid].bounds; let minz=1e9;
   for(const x of [b[0][0],b[1][0]]) for(const y of [b[0][1],b[1][1]]) for(const z of [b[0][2],b[1][2]]) minz=Math.min(minz,new THREE.Vector3(x,y,z).applyQuaternion(q).z);
   const g=6.35, pos=new THREE.Vector3(Math.round(pt.x/g)*g,Math.round(pt.y/g)*g,-minz);
   return {q,pos,dir:new THREE.Vector3(0,0,1)};
@@ -475,7 +481,7 @@ async function syncScene(visibleUpTo=Infinity,animStep=null){
   model.parts.forEach((p,i)=>{
     if(p.step>visibleUpTo) return;
     const home=V(p.p), dir=V(p.dir||[0,0,1]), anim=animStep!==null&&p.step===animStep;
-    for(const m of partMeshes(p.sid,p.col,i===selected?'s':'')){
+    for(const m of partMeshes(p.sid,p.col,(i===selected||selSet.has(i))?'s':'')){
       m.position.copy(home); m.quaternion.fromArray(p.q); m.userData={i,home,dir,anim,hex:m.userData.hex};
       root.add(m); meshes.push(m);
     }
@@ -494,7 +500,7 @@ hl.renderOrder=10; hl.visible=false; scene.add(hl);
 function rebuildDots(){
   for(const d of [dotsF,dotsM]) if(d){scene.remove(d); d.dispose();}
   cand=[];
-  if(armed){ const ks=PART[armed.sid].conn.map(c=>c.k); cand=freeConns.filter(c=>ks.some(k=>compat(k,c.k))); }
+  if(armed){ const ks=armedConns().map(c=>c.k); cand=freeConns.filter(c=>ks.some(k=>compat(k,c.k))); }
   const f=cand.filter(c=>isF(c.k)), m=cand.filter(c=>isM(c.k));
   const mk=(arr,mt)=>{const im=new THREE.InstancedMesh(dotGeo,mt,Math.max(1,arr.length)); im.count=arr.length; const M=new THREE.Matrix4(); arr.forEach((c,k)=>{M.setPosition(c.p.clone().addScaledVector(c.n,.4)); im.setMatrixAt(k,M);}); scene.add(im); return im;};
   dotsF=mk(f,dotMatF); dotsM=mk(m,dotMatM); need();
@@ -505,7 +511,7 @@ let ghost=null, pose=null;
 async function updateGhost(){
   ghostRoot.clear(); ghost=null; pose=null; hl.visible=false; need();
   if(!armed||mode!=='build'||!hover) { updateHint(); return; }
-  await ensureGeo(armed.sid);
+  await geoAll(armed.group?[...new Set(armed.group.map(m=>m.sid))]:[armed.sid]);
   if(!armed||!hover) { updateHint(); return; }
   if(hover.type==='conn'){
     const ch=chosenOption(hover.c); if(!ch){updateHint();return;}
@@ -513,7 +519,9 @@ async function updateGhost(){
     hl.position.copy(hover.c.p); hl.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),hover.c.n); hl.visible=true;
   } else pose=groundPose(hover.pt);
   ghostRoot.clear();
-  ghost=new THREE.Group(); for(const m of partMeshes(armed.sid,armed.col,'g')) ghost.add(m);
+  ghost=new THREE.Group();
+  if(armed.group) for(const g of armed.group){ for(const m of partMeshes(g.sid,g.col,'g')){ m.position.copy(g.pos); m.quaternion.copy(g.q); ghost.add(m); } }
+  else for(const m of partMeshes(armed.sid,armed.col,'g')) ghost.add(m);
   ghost.position.copy(pose.pos); ghost.quaternion.copy(pose.q); ghostRoot.add(ghost);
   updateHint(); need();
 }
@@ -522,9 +530,10 @@ function updateHint(){
   const h=$('hintL');
   if(mode==='view'){ h.hidden=false; h.textContent=t(view2d?'galleryHint':'viewHint'); return; }
   if(mode!=='build'){h.hidden=true;return;} h.hidden=false;
+  if(selSet.size>1){ h.textContent=t('hMulti',selSet.size); return; }
   if(selected>=0){h.textContent=t(slideInfo?'hSelSlide':'hSel',PART[model.parts[selected].sid].name); return;}
   if(!armed){h.textContent=t(model.parts.length?'hPick':'hFirst'); return;}
-  const nm=PART[armed.sid].name;
+  const nm=armed.group?t('groupOf',armed.group.length):PART[armed.sid].name;
   if(!hover) h.textContent=t('hArmed',nm);
   else if(hover.type==='conn'){
     const ch=chosenOption(hover.c); if(!ch){ h.textContent=t('hArmed',nm); return; }
@@ -582,7 +591,7 @@ canvas.addEventListener('pointerup',e=>{
     if(e.pointerType==='mouse'){ if(lockHover){ place(); return; } if(!sameHover(h,hover)&&!(hover&&hover.type==='conn'&&screenDist(hover.c.p,e)<30)){hover=h;ptIdx=0;} if(hover) updateGhost().then(place); return; }
     if(h&&sameHover(h,hover)) place(); else {hover=h;ptIdx=0;updateGhost();}
   } else {
-    const ni=(h&&h.type==='part')?h.i:-1; if(ni>=0) sfx('pick'); selectPart(ni);
+    const ni=(h&&h.type==='part')?h.i:-1; if(ni>=0) sfx('pick'); const add=(e.shiftKey||multiOn)&&ni>=0; if(ni<0&&(e.shiftKey||multiOn)) return; selectPart(ni,add);
   }
 });
 
@@ -594,6 +603,14 @@ function place(){
   snapshot();
   const r=a=>a.map(x=>Math.round(x*1000)/1000);
   sfx('place');
+  if(armed.group){
+    const gid=armed.gid||newGid();
+    for(const g of armed.group){
+      const q=pose.q.clone().multiply(g.q), pp=g.pos.clone().applyQuaternion(pose.q).add(pose.pos);
+      model.parts.push({sid:g.sid,col:g.col,hex:g.hex,p:r(pp.toArray()),q:r(q.toArray()),dir:r(pose.dir.toArray()),step:model.step,g:gid});
+    }
+    armed=null; renderLib(); rebuildDots();      // a group is placed once, then the hand is empty
+  } else
   model.parts.push({sid:armed.sid,col:armed.col,hex:armed.hex,p:r(pose.pos.toArray()),q:r(pose.q.toArray()),dir:r(pose.dir.toArray()),step:model.step});
   hover=null; afterChange();
 }
@@ -603,8 +620,8 @@ $('tRot').onclick=()=>{spin=(spin+1)%4; updateGhost();};
 $('tPt').onclick=()=>{ptIdx++; depIdx=0; updateGhost();};
 $('tDepth').onclick=()=>{depIdx++; sfx('ui'); updateGhost();};
 $('tTilt').onclick=()=>{tilt=(tilt+1)%3; updateGhost();};
-$('tUndo').onclick=()=>{ if(!undoStack.length){ sfx('err'); return; } sfx('undo'); model=JSON.parse(undoStack.pop()); selected=-1; $('tDel').hidden=true; $('mname').value=displayName(model.name); $('curStep').textContent=model.step; afterChange(); };
-$('tDel').onclick=()=>{ if(selected<0) return; sfx('del'); snapshot(); model.parts.splice(selected,1); selected=-1; slideInfo=null; $('tDel').hidden=true; afterChange(); };
+$('tUndo').onclick=()=>{ if(!undoStack.length){ sfx('err'); return; } sfx('undo'); model=JSON.parse(undoStack.pop()); selected=-1; selSet=new Set(); armed=null; renderLib(); rebuildDots(); $('tDel').hidden=true; $('mname').value=displayName(model.name); $('curStep').textContent=model.step; afterChange(); };
+$('tDel').onclick=()=>{ if(selected<0) return; sfx('del'); snapshot(); for(const i of [...selSet].sort((a,b)=>b-a)) model.parts.splice(i,1); selected=-1; selSet=new Set(); slideInfo=null; $('tDel').hidden=true; afterChange(); };
 $('tStep').onclick=()=>{ const maxUsed=Math.max(0,...model.parts.map(p=>p.step)); if(maxUsed<model.step){sfx('err'); toast(t('tStepEmpty',model.step));return;} sfx('step'); snapshot(); model.step++; $('curStep').textContent=model.step; saveDraft(); toast(t('tStepStart',model.step)); };
 $('mname').oninput=e=>{model.name=e.target.value; edited=true; saveDraft();};
 function closeSheet(){ const s=document.querySelector('.sheet'); if(s){s.remove(); return true;} return false; }
@@ -625,6 +642,7 @@ addEventListener('keydown',e=>{
   if(mode==='build'&&(c==='KeyR'||c==='KeyT'||c==='KeyF')) e.preventDefault();
   if(c==='KeyT'){ if(e.repeat) return; if(armed&&mode==='build'){ $('tPt').click(); if(hover&&hover.type==='conn') setLock(true); } return; }
   if(c==='KeyR'){ if(armed&&mode==='build') $('tRot').click(); return; }
+  if(c==='KeyG'&&mode==='build'&&!armed){ e.preventDefault(); if(e.shiftKey){ if(!$('tUngroup').hidden) $('tUngroup').click(); } else if(!$('tGroup').hidden) $('tGroup').click(); return; }
   if(c==='KeyD'){ if(armed&&mode==='build'&&!$('tDepth').hidden){ e.preventDefault(); $('tDepth').click(); } return; }
   if(c==='KeyF'){ if(armed&&mode==='build') $('tTilt').click(); return; }
   const k=e.key;
@@ -682,11 +700,15 @@ function refreshTools(){
   const ch=holding&&hover&&hover.type==='conn'?chosenOption(hover.c):null;
   $('tDepth').hidden=!(ch&&ch.deps>1); if(ch&&ch.deps>1) $('tDepthN').textContent=(ch.dep+1)+'/'+ch.deps;
   $('tDel').hidden=!sel; $('tCancel').hidden=!(holding||sel); $('tPick').hidden=!sel||holding;
-  $('slideBox').hidden=!(sel&&slideInfo&&!holding);
+  const gs=[...selSet].map(i=>model.parts[i]&&model.parts[i].g);
+  $('tGroup').hidden=holding||selSet.size<2||(gs.every(g=>g&&g===gs[0]));
+  $('tUngroup').hidden=holding||!gs.some(Boolean);
+  $('tMulti').hidden=holding||mode!=='build'; $('tMulti').setAttribute('aria-pressed',multiOn);
+  $('slideBox').hidden=!(sel&&slideInfo&&!holding&&selSet.size===1);
   if(sel&&slideInfo){ const r=$('tSlide'); r.min=slideInfo.lo.toFixed(2); r.max=slideInfo.hi.toFixed(2); r.value=slideInfo.t.toFixed(2); }
   $('tCancel').textContent=t(holding?'putBack':'deselect');
   const h=$('hold'); h.hidden=!holding;
-  if(holding){ h.querySelector('img').src=`t/${armed.sid}_${armed.col}.png`; h.querySelector('span').textContent=PART[armed.sid].name; }
+  if(holding){ h.querySelector('img').src=`t/${armed.sid}_${armed.col}.png`; h.querySelector('span').textContent=armed.group?t('groupOf',armed.group.length):PART[armed.sid].name; }
 }
 /* ---------- take off and slide on a shaft ---------- */
 let slideInfo=null, slideSnap=false;
@@ -751,14 +773,40 @@ function moveSelected(tv){
 }
 $('tSlide').addEventListener('input',e=>{ if(!slideSnap){ snapshot(); slideSnap=true; } moveSelected(+e.target.value); });
 $('tSlide').addEventListener('change',()=>{ slideSnap=false; sfx('place'); rebuildConns(); saveDraft(); });
-function selectPart(i){ selected=i; slideInfo=i>=0?computeSlide(i):null; syncScene(); updateHint(); }
+/* ---------- groups: parts with the same g move together ---------- */
+let selSet=new Set(), multiOn=false;
+const newGid=()=>'g'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);
+const membersOf=i=>{ const g=model.parts[i]&&model.parts[i].g; return g?model.parts.map((p,j)=>p.g===g?j:-1).filter(j=>j>=0):[i]; };
+function selectPart(i,add){
+  if(i<0){ selSet=new Set(); selected=-1; }
+  else if(add){ const mem=membersOf(i), on=mem.every(j=>selSet.has(j)); for(const j of mem) on?selSet.delete(j):selSet.add(j); selected=selSet.size?(on?[...selSet].at(-1):i):-1; }
+  else { selSet=new Set(membersOf(i)); selected=i; }
+  slideInfo=(selected>=0&&selSet.size===1)?computeSlide(selected):null; syncScene(); updateHint();
+}
+$('tMulti').onclick=()=>{ multiOn=!multiOn; sfx('ui'); refreshTools(); };
+$('tGroup').onclick=()=>{ if(selSet.size<2) return; snapshot(); const g=newGid(); for(const i of selSet) model.parts[i].g=g; sfx('step'); toast(t('tGrouped',selSet.size)); saveDraft(); refreshTools(); };
+$('tUngroup').onclick=()=>{ snapshot(); for(const i of selSet) delete model.parts[i].g; sfx('ui'); toast(t('tUngrouped')); saveDraft(); refreshTools(); };
+/* pick up the whole selection: positions and free connectors are stored relative to the clicked part */
+function pickGroup(){
+  const idx=[...selSet].sort((a,b)=>a-b), A=model.parts[selected];
+  const qA=new THREE.Quaternion(...A.q), qAi=qA.clone().invert(), pA=V(A.p);
+  const group=idx.map(i=>{ const p=model.parts[i]; return {sid:p.sid,col:p.col,hex:p.hex,pos:V(p.p).sub(pA).applyQuaternion(qAi),q:qAi.clone().multiply(new THREE.Quaternion(...p.q))}; });
+  const all=idx.flatMap(i=>worldConns(i));
+  const free=all.filter(c=>!all.some(o=>o.i!==c.i&&o.p.distanceToSquared(c.p)<.64&&o.n.dot(c.n)<-.9));
+  const conns=free.map(c=>({k:c.k,p:c.p.clone().sub(pA).applyQuaternion(qAi).toArray(),n:c.n.clone().applyQuaternion(qAi).toArray()}));
+  const lo=[1e9,1e9,1e9], hi=[-1e9,-1e9,-1e9];
+  for(const g of group){ const b=PART[g.sid].bounds; for(const x of [b[0][0],b[1][0]]) for(const y of [b[0][1],b[1][1]]) for(const z of [b[0][2],b[1][2]]){ const v=new THREE.Vector3(x,y,z).applyQuaternion(g.q).add(g.pos).toArray(); for(let k=0;k<3;k++){ lo[k]=Math.min(lo[k],v[k]); hi[k]=Math.max(hi[k],v[k]); } } }
+  const gids=new Set(idx.map(i=>model.parts[i].g)), gid=gids.size===1&&[...gids][0]?[...gids][0]:null;
+  snapshot(); for(const i of idx.reverse()) model.parts.splice(i,1);
+  armed={sid:A.sid,col:A.col,hex:A.hex,group,conns,bounds:[lo,hi],gid};
+}
 $('tPick').onclick=()=>{
   if(selected<0) return;
-  const p=model.parts[selected]; snapshot(); model.parts.splice(selected,1);
-  selected=-1; slideInfo=null; sfx('pick');
-  armed={sid:p.sid,col:p.col,hex:p.hex}; ptIdx=0; hover=null; afterChange();
+  if(selSet.size>1) pickGroup();
+  else { const p=model.parts[selected]; snapshot(); model.parts.splice(selected,1); armed={sid:p.sid,col:p.col,hex:p.hex}; }
+  selected=-1; selSet=new Set(); slideInfo=null; sfx('pick'); ptIdx=0; depIdx=0; hover=null; spin=0; tilt=0; afterChange();
 };
-$('tCancel').onclick=()=>{ sfx('ui'); if(armed){ disarm(); return; } if(selected>=0) selectPart(-1); };
+$('tCancel').onclick=()=>{ sfx('ui'); if(armed){ if(armed.group){ $('tUndo').click(); return; } disarm(); return; } if(selected>=0) selectPart(-1); };   // putting back a group restores it where it was
 canvas.addEventListener('contextmenu',e=>{ if(armed||selected>=0){ e.preventDefault(); $('tCancel').click(); } });
 
 /* ---------- library and BOM ---------- */
@@ -771,12 +819,12 @@ function renderLib(){
   const u=used(), lib=$('lib'); lib.innerHTML='';
   for(const P of CATALOG.parts.filter(p=>p.cat===curCat)) for(const c of P.colors){
     const k=P.id+'|'+c.c, n=u[k]||0;
-    const b=document.createElement('button'); b.className='card'; b.setAttribute('aria-pressed',!!armed&&armed.sid===P.id&&armed.col===c.c);
+    const b=document.createElement('button'); b.className='card'; b.setAttribute('aria-pressed',!!armed&&!armed.group&&armed.sid===P.id&&armed.col===c.c);
     b.title=partTitle(P);
     b.innerHTML=`<img alt="" loading="lazy" decoding="async" src="t/${P.id}_${c.c}.png"><span class="nm"></span><span class="ct ${n>c.qty?'over':''}">${n} / ${c.qty}</span>`;
     b.querySelector('.nm').textContent=P.name;
     b.onclick=async()=>{
-      if(armed&&armed.sid===P.id&&armed.col===c.c){sfx('ui'); disarm();return;}
+      if(armed&&!armed.group&&armed.sid===P.id&&armed.col===c.c){sfx('ui'); disarm();return;}
       sfx('pick'); armed={sid:P.id,col:c.c,hex:c.hex}; selected=-1; $('tDel').hidden=true; ptIdx=0; renderLib();
       try{ await ensureGeo(P.id); }catch{ armed=null; renderLib(); toast(t('tLoadFail')); return; }
       rebuildDots(); if(hover) updateGhost(); else updateHint();
@@ -909,7 +957,7 @@ $('mBuild').onclick=()=>{sfx('ui'); setMode('build');}; $('mInstr').onclick=()=>
 /* ---------- storage and model validation ---------- */
 function saveDraft(){
   try{
-    if(edited) localStorage.setItem('vexgo-draft',JSON.stringify({edited:true,modelId,model:{name:model.name,ref:model.ref,step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step})=>({sid,col,p,q,dir,step}))}}));
+    if(edited) localStorage.setItem('vexgo-draft',JSON.stringify({edited:true,modelId,model:{name:model.name,ref:model.ref,step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step,g})=>({sid,col,p,q,dir,step,...(g?{g}:{})}))}}));
     else if(srcFile) localStorage.setItem('vexgo-draft',JSON.stringify({edited:false,src:srcFile}));   // unedited built-in: remember which, never a stale copy
   }catch{}
 }
@@ -924,7 +972,8 @@ function cleanModel(m){
     const ql=Math.hypot(...p.q); if(ql<1e-6) continue;
     const c=P.colors.find(c=>c.c===p.col)||P.colors[0];
     const step=Math.min(999,Math.max(1,Math.floor(Number(p.step))||1));
-    parts.push({sid:p.sid,col:c.c,hex:c.hex,p:p.p.slice(),q:p.q.map(x=>x/ql),dir:num3(p.dir)?p.dir.slice():[0,0,1],step});
+    const g=typeof p.g==='string'&&/^[\w-]{1,24}$/.test(p.g)?p.g:undefined;
+    parts.push({sid:p.sid,col:c.c,hex:c.hex,p:p.p.slice(),q:p.q.map(x=>x/ql),dir:num3(p.dir)?p.dir.slice():[0,0,1],step,...(g?{g}:{})});
   }
   let ref=null; try{ const u=new URL(String(m.ref||'')); if(u.protocol==='https:') ref=u.href; }catch{}   // never let a shared file inject a javascript: link
   const maxStep=Math.max(1,...parts.map(p=>p.step));
@@ -969,7 +1018,7 @@ function localList(){ try{ const a=JSON.parse(localStorage.getItem(LOCAL_KEY)||'
 function localWrite(a){ localStorage.setItem(LOCAL_KEY,JSON.stringify(a)); }
 $('bSave').onclick=async()=>{
   model.name=$('mname').value.trim()||t('modelDefault'); edited=true;
-  const body={name:model.name,ref:model.ref||null,parts:model.parts.map(({sid,col,p,q,dir,step})=>({sid,col,p,q,dir,step})),step:model.step,updated:Date.now(),count:model.parts.length,thumb:snapThumb()};
+  const body={name:model.name,ref:model.ref||null,parts:model.parts.map(({sid,col,p,q,dir,step,g})=>({sid,col,p,q,dir,step,...(g?{g}:{})})),step:model.step,updated:Date.now(),count:model.parts.length,thumb:snapThumb()};
   if(!db){
     const list=localList(); let id=modelId&&String(modelId).startsWith('l')?modelId:null;
     if(!id) id='l'+Date.now();
@@ -1027,7 +1076,7 @@ $('bMore').onclick=()=>{
   s.querySelector('#fc').onclick=()=>s.remove();
   s.querySelector('#fi').onclick=()=>{s.remove(); $('fileIn').click();};
   s.querySelector('#fx').onclick=async()=>{
-    const data=JSON.stringify({name:model.name,ref:model.ref||null,step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step})=>({sid,col,p,q,dir,step}))},null,1);
+    const data=JSON.stringify({name:model.name,ref:model.ref||null,step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step,g})=>({sid,col,p,q,dir,step,...(g?{g}:{})}))},null,1);
     const filename=(model.name||'model').replace(/[\\/:*?"<>|]/g,'_')+'.json';
     try{
       if(window.claude&&claude.use){ const dl=await claude.use('downloads'); if(dl){ await dl.save({filename,data}); s.remove(); return; } }
@@ -1122,7 +1171,7 @@ function loop(now){
   if(location.hash==='#instructions') setMode('instr'); else if(location.hash==='#showcase') setMode('view');
   if(window.claude&&claude.use){ claude.use('db').then(d=>{db=d;}).catch(()=>{}); }
 })();
-window.__vx={THREE, geo:sid=>geoCache[sid]&&geoCache[sid]._v, compat:(a,b)=>compat(a,b), select:i=>selectPart(i), slide:()=>slideInfo&&{lo:slideInfo.lo,hi:slideInfo.hi,t:slideInfo.t}, moveSel:v=>{snapshot();moveSelected(v);rebuildConns();}, pickUp:()=>$('tPick').click(), armedNow:()=>armed&&armed.sid, candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
+window.__vx={sel:()=>({selected,set:[...selSet],armedGroup:armed&&armed.group?armed.group.length:0,armedConns:armed?armedConns().length:0}), selectAdd:(i,a)=>selectPart(i,a), THREE, geo:sid=>geoCache[sid]&&geoCache[sid]._v, compat:(a,b)=>compat(a,b), select:i=>selectPart(i), slide:()=>slideInfo&&{lo:slideInfo.lo,hi:slideInfo.hi,t:slideInfo.t}, moveSel:v=>{snapshot();moveSelected(v);rebuildConns();}, pickUp:()=>$('tPick').click(), armedNow:()=>armed&&armed.sid, candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
 </script>
 </body>
 </html>
