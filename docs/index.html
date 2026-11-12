@@ -387,7 +387,8 @@ function mat(hex,kind){
 /* ---------- connectors ---------- */
 const V=a=>new THREE.Vector3(a[0],a[1],a[2]);
 const isF=k=>k[0]==='F', isM=k=>k[0]==='M';
-function compat(a,b){ if(isF(a)&&isF(b)) return true; if(isM(a)&&isM(b)) return false; const m=isM(a)?a:b, f=isF(a)?a:b; return !(m==='MP'&&f==='FS'); }
+function compat(a,b){ if(a[1]==='T'||b[1]==='T') return (a==='MT'&&b==='FT')||(a==='FT'&&b==='MT');   // tire on pulley rim only
+  if(isF(a)&&isF(b)) return true; if(isM(a)&&isM(b)) return false; const m=isM(a)?a:b, f=isF(a)?a:b; return !(m==='MP'&&f==='FS'); }
 function worldConns(i){
   const p=model.parts[i], P=PART[p.sid], q=new THREE.Quaternion(...p.q), tt=V(p.p);
   return P.conn.map((c,j)=>({i,j,k:c.k,p:V(c.p).applyQuaternion(q).add(tt),n:V(c.n).applyQuaternion(q).normalize()}));
@@ -1067,7 +1068,7 @@ function loop(now){
   if(location.hash==='#instructions') setMode('instr'); else if(location.hash==='#showcase') setMode('view');
   if(window.claude&&claude.use){ claude.use('db').then(d=>{db=d;}).catch(()=>{}); }
 })();
-window.__vx={select:i=>selectPart(i), slide:()=>slideInfo&&{lo:slideInfo.lo,hi:slideInfo.hi,t:slideInfo.t}, moveSel:v=>{snapshot();moveSelected(v);rebuildConns();}, pickUp:()=>$('tPick').click(), armedNow:()=>armed&&armed.sid, candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
+window.__vx={THREE, geo:sid=>geoCache[sid]&&geoCache[sid]._v, compat:(a,b)=>compat(a,b), select:i=>selectPart(i), slide:()=>slideInfo&&{lo:slideInfo.lo,hi:slideInfo.hi,t:slideInfo.t}, moveSel:v=>{snapshot();moveSelected(v);rebuildConns();}, pickUp:()=>$('tPick').click(), armedNow:()=>armed&&armed.sid, candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
 </script>
 </body>
 </html>
