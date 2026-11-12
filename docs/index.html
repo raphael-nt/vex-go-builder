@@ -253,7 +253,7 @@ th:{
   hPick:'เลือกชิ้นจากคลัง หรือแตะชิ้นบนโมเดลเพื่อเลือก',
   hFirst:'เลือกชิ้นแรกจากคลัง แล้วแตะบนพื้นเพื่อวาง',
   hArmed:'{0} แตะจุดบนโมเดล หรือแตะพื้นเพื่อวาง',
-  hConn:'{0} จุดต่อ {1} จาก {2} แตะซ้ำหรือกด วาง',
+  hConn:'{0} รู {1} จาก {2} เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง',hLock:'ล็อกรูนี้ไว้ เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง ปล่อย T เพื่อปลดล็อก',hConnTouch:'{0} รู {1} จาก {2} แตะซ้ำหรือกด วาง',
   hGround:'{0} วางบนพื้น แตะซ้ำหรือกด วาง',
   tStepEmpty:'Step {0} ยังไม่มีชิ้น วางชิ้นก่อนแล้วค่อยขึ้น Step ใหม่',tStepStart:'เริ่ม Step {0}',
   tSavedLocal:'บันทึก {0} ไว้ในเครื่องนี้แล้ว เปิดดูได้ที่ เปิดโมเดล',tQuotaLocal:'พื้นที่ในเครื่องเต็ม ลบโมเดลเก่าที่ เปิดโมเดล ก่อน',putBack:'วางคืน',viewParts:'ชิ้นในโมเดลนี้',viewHint:'แตะชิ้นส่วนเพื่อดูชื่อ ลากเพื่อหมุนดูรอบๆ',galleryHint:'ปัดซ้ายขวาเพื่อดูรอบตัวหุ่น',angleOf:'เลือกมุมมอง',making:'กำลังสร้างภาพ 10 มุม',deselect:'ยกเลิกเลือก',sound:'เสียง',examples:'โมเดลตัวอย่าง',mine:'โมเดลของฉัน',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
@@ -279,7 +279,7 @@ en:{
   hPick:'Pick a part from the library, or tap a part on the model to select it',
   hFirst:'Pick the first part from the library, then tap the floor to place it',
   hArmed:'{0} Tap a hole on the model, or tap the floor to place',
-  hConn:'{0} hole {1} of {2}. Tap again or press Place',
+  hConn:'{0} hole {1} of {2}. Scroll or press T to change hole, click to place',hLock:'Hole locked. Scroll or press T to change hole, click to place. Release T to unlock',hConnTouch:'{0} hole {1} of {2}. Tap again or press Place',
   hGround:'{0} on the floor. Tap again or press Place',
   tStepEmpty:'Step {0} has no parts yet. Place a part before starting a new step',tStepStart:'Started step {0}',
   tSavedLocal:'Saved {0} on this device. Find it in Open',tQuotaLocal:'Device storage is full. Delete an old model in Open first',putBack:'Put back',viewParts:'Parts in this model',viewHint:'Tap a part to see its name. Drag to turn the model',galleryHint:'Swipe left or right to look around the robot',angleOf:'Choose a view',making:'Making 10 pictures',deselect:'Deselect',sound:'Sound',examples:'Example models',mine:'My models',tSavedDb:'Saved {0}. Everyone with this link can see it',
@@ -486,7 +486,7 @@ function updateHint(){
   if(!armed){h.textContent=t(model.parts.length?'hPick':'hFirst'); return;}
   const nm=PART[armed.sid].name;
   if(!hover) h.textContent=t('hArmed',nm);
-  else if(hover.type==='conn'){const n=srcOptions(hover.c).length; h.textContent=t('hConn',nm,(ptIdx%n)+1,n);}
+  else if(hover.type==='conn'){const n=srcOptions(hover.c).length; h.textContent=lockHover?t('hLock')+' ('+((ptIdx%n)+1)+'/'+n+')':t(matchMedia('(pointer:fine)').matches?'hConn':'hConnTouch',nm,(ptIdx%n)+1,n);}
   else h.textContent=t('hGround',nm);
 }
 
@@ -515,6 +515,7 @@ function pick(e){
   if(hits.length) return {type:'part',i:hits[0].object.userData.i};
   return null;
 }
+function screenDist(p,e){ const r=canvas.getBoundingClientRect(), v=p.clone().project(camera); return Math.hypot((v.x+1)/2*r.width-(e.clientX-r.left),(1-v.y)/2*r.height-(e.clientY-r.top)); }
 const sameHover=(a,b)=>a&&b&&a.type===b.type&&(a.type==='conn'?(a.c.i===b.c.i&&a.c.j===b.c.j):a.type==='ground'?a.pt.distanceTo(b.pt)<6.35:false);
 let down=null, moveEv=null, moveRaf=0;
 canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY,t:performance.now()};});
@@ -522,7 +523,11 @@ canvas.addEventListener('pointermove',e=>{
   if(mode==='view'){ if(e.pointerType==='mouse'&&!e.buttons) viewPoint(e); return; }
   if(mode!=='build'||!armed||e.pointerType!=='mouse'||e.buttons) return;
   moveEv=e; if(moveRaf) return;           // at most one pick per frame
-  moveRaf=requestAnimationFrame(()=>{ moveRaf=0; const ev=moveEv; if(!ev||!armed) return; const h=pick(ev); if(!sameHover(h,hover)){hover=h; ptIdx=0; updateGhost();} });
+  if(lockHover) return;
+  moveRaf=requestAnimationFrame(()=>{ moveRaf=0; const ev=moveEv; if(!ev||!armed||lockHover) return; const h=pick(ev);
+    if(sameHover(h,hover)) return;
+    if(hover&&hover.type==='conn'&&screenDist(hover.c.p,ev)<30) return;   // stay on the current hole until the mouse clearly leaves it, so T and R are not reset
+    hover=h; ptIdx=0; updateGhost(); });
 });
 canvas.addEventListener('pointerup',e=>{
   if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6||e.button>0){down=null;return;} down=null;
@@ -530,7 +535,7 @@ canvas.addEventListener('pointerup',e=>{
   if(mode!=='build') return;
   const h=pick(e);
   if(armed){
-    if(e.pointerType==='mouse'){ if(!sameHover(h,hover)){hover=h;ptIdx=0;} if(hover) updateGhost().then(place); return; }
+    if(e.pointerType==='mouse'){ if(lockHover){ place(); return; } if(!sameHover(h,hover)&&!(hover&&hover.type==='conn'&&screenDist(hover.c.p,e)<30)){hover=h;ptIdx=0;} if(hover) updateGhost().then(place); return; }
     if(h&&sameHover(h,hover)) place(); else {hover=h;ptIdx=0;updateGhost();}
   } else {
     selected=(h&&h.type==='part')?h.i:-1; if(selected>=0) sfx('pick'); syncScene(); updateHint();
@@ -558,19 +563,42 @@ $('tDel').onclick=()=>{ if(selected<0) return; sfx('del'); snapshot(); model.par
 $('tStep').onclick=()=>{ const maxUsed=Math.max(0,...model.parts.map(p=>p.step)); if(maxUsed<model.step){sfx('err'); toast(t('tStepEmpty',model.step));return;} sfx('step'); snapshot(); model.step++; $('curStep').textContent=model.step; saveDraft(); toast(t('tStepStart',model.step)); };
 $('mname').oninput=e=>{model.name=e.target.value; edited=true; saveDraft();};
 function closeSheet(){ const s=document.querySelector('.sheet'); if(s){s.remove(); return true;} return false; }
+/* Shortcuts use e.code (physical key), so they work with the Thai layout too (R = พ, T = ะ, F = ด, Z = ผ). */
+let lockHover=false;
+function setLock(on){
+  if(on===lockHover) return;
+  lockHover=on; controls.enabled=!on;    // hold T: keep this hole and freeze the view while choosing
+  updateHint();
+}
 addEventListener('keydown',e=>{
   if(e.key==='Escape'){ if(!closeSheet()) disarm(); return; }
   const tg=e.target.tagName; if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT') return;
   if(document.querySelector('.sheet')) return;
-  const k=e.key.toLowerCase();
-  if(k==='z'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); $('tUndo').click(); return; }
+  const c=e.code;
+  if(c==='KeyZ'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); $('tUndo').click(); return; }
   if(e.ctrlKey||e.metaKey||e.altKey) return;      // never steal browser shortcuts such as Ctrl+R
-  if(k==='r') $('tRot').click(); else if(k==='t') $('tPt').click(); else if(k==='f') $('tTilt').click();
-  else if((k==='delete'||k==='backspace')&&selected>=0) $('tDel').click();
-  else if(k==='enter'&&tg!=='BUTTON'&&tg!=='A') place();   // Enter on a focused button must only press that button
-  else if(mode==='instr'&&k==='arrowright') $('iNext').click(); else if(mode==='instr'&&k==='arrowleft') $('iPrev').click();
-  else if(mode==='view'&&view2d&&k==='arrowright') $('gNext').click(); else if(mode==='view'&&view2d&&k==='arrowleft') $('gPrev').click();
+  if(mode==='build'&&(c==='KeyR'||c==='KeyT'||c==='KeyF')) e.preventDefault();
+  if(c==='KeyT'){ if(e.repeat) return; if(armed&&mode==='build'){ $('tPt').click(); if(hover&&hover.type==='conn') setLock(true); } return; }
+  if(c==='KeyR'){ if(armed&&mode==='build') $('tRot').click(); return; }
+  if(c==='KeyF'){ if(armed&&mode==='build') $('tTilt').click(); return; }
+  const k=e.key;
+  if((k==='Delete'||k==='Backspace')&&selected>=0) $('tDel').click();
+  else if(k==='Enter'&&tg!=='BUTTON'&&tg!=='A') place();   // Enter on a focused button must only press that button
+  else if(mode==='instr'&&k==='ArrowRight') $('iNext').click(); else if(mode==='instr'&&k==='ArrowLeft') $('iPrev').click();
+  else if(mode==='view'&&view2d&&k==='ArrowRight') $('gNext').click(); else if(mode==='view'&&view2d&&k==='ArrowLeft') $('gPrev').click();
 });
+addEventListener('keyup',e=>{ if(e.code==='KeyT') setLock(false); });
+addEventListener('blur',()=>setLock(false));
+/* mouse wheel over a hole changes which hole of the part goes in; elsewhere it zooms as usual */
+let wheelAcc=0, wheelT=0;
+stage.addEventListener('wheel',e=>{
+  if(mode!=='build'||!armed||!(lockHover||(hover&&hover.type==='conn'))) return;
+  e.preventDefault(); e.stopPropagation();          // capture phase, so the camera does not zoom
+  const now=performance.now(); if(now-wheelT>250) wheelAcc=0; wheelT=now;
+  wheelAcc+=e.deltaY; const step=Math.abs(e.deltaMode===1?wheelAcc*40:wheelAcc);
+  if(step<50) return;
+  ptIdx+=wheelAcc>0?1:-1; if(ptIdx<0) ptIdx+=1000; wheelAcc=0; sfx('ui'); updateGhost();
+},{capture:true,passive:false});
 function disarm(){armed=null; hover=null; renderLib(); rebuildDots(); updateGhost();}
 let toastT; function toast(s){let el=document.querySelector('.toast'); if(!el){el=document.createElement('div'); el.className='toast'; el.setAttribute('role','status'); document.body.append(el);} el.textContent=s; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,2400);}
 
@@ -932,7 +960,7 @@ function loop(now){
   if(location.hash==='#instructions') setMode('instr'); else if(location.hash==='#showcase') setMode('view');
   if(window.claude&&claude.use){ claude.use('db').then(d=>{db=d;}).catch(()=>{}); }
 })();
-window.__vx={meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
+window.__vx={candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
 </script>
 </body>
 </html>
