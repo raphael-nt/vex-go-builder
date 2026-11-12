@@ -11,6 +11,9 @@ Click a part, click a hole on the model, and it snaps into place.
 - Built-in models: Competition Base (55 parts, 28 steps) and Competition Advanced (131 parts), built from VEX instructions 269-8115-010 and 269-8115-040
 - Thai and English UI, click sounds (can be muted), saved models with preview pictures in Open
 - Works on phones, tablets and desktop
+- CAD-style tools: undo and redo, copy, paste, duplicate, mirror left-right, groups, hide and isolate,
+  parts tree, view cube with fit, X-ray, section view, measure, collision warning, right-click menu,
+  library search, PNG and CSV export, shortcut sheet (press ?)
 
 ## Run locally
 
