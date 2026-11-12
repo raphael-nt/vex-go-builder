@@ -44,7 +44,7 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px max(1
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn:disabled{opacity:.45;cursor:default}
 button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-main{position:relative;display:grid;grid-template-columns:300px minmax(0,1fr);min-height:0;min-width:0}
+main{position:relative;display:grid;grid-template-columns:var(--side-w,300px) minmax(0,1fr);min-height:0;min-width:0}
 aside{min-width:0;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 .tabs{display:flex;gap:4px;padding:10px 12px 6px;flex-wrap:wrap}
 .tabs button{border:1px solid var(--line);background:transparent;color:var(--muted);font:500 12px var(--f-ui);padding:4px 10px;border-radius:999px;cursor:pointer}
@@ -56,7 +56,18 @@ aside{min-width:0;background:var(--panel);border-right:1px solid var(--line);dis
 .card .ct{font:500 11px var(--f-num);color:var(--muted)}
 .card .ct.over{color:var(--warn)}
 .card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;background:var(--accent-soft)}
-.bom{border-top:1px solid var(--line);padding:10px 12px;max-height:32%;overflow:auto}
+.bom{padding:4px 12px 10px;height:var(--bom-h,220px);overflow:auto;flex:none}
+/* drag handles: aside width (vsplit) and the used-parts box height (hsplit) */
+.vsplit{position:absolute;top:0;bottom:0;left:var(--side-w,300px);width:12px;margin-left:-6px;cursor:col-resize;z-index:6;touch-action:none}
+.vsplit::after{content:"";position:absolute;left:5px;top:0;bottom:0;width:2px;background:transparent;transition:background .15s}
+.vsplit:hover::after,.vsplit.drag::after{background:var(--accent)}
+.vsplit .grip{position:absolute;top:50%;left:1px;width:10px;height:44px;margin-top:-22px;border-radius:6px;background:var(--panel);border:1px solid var(--line);box-shadow:0 1px 4px rgba(10,20,40,.12)}
+.vsplit .grip::before{content:"";position:absolute;left:3px;top:12px;bottom:12px;width:2px;border-left:1px solid var(--muted);border-right:1px solid var(--muted)}
+.hsplit{flex:none;height:14px;cursor:row-resize;position:relative;touch-action:none;border-top:1px solid var(--line)}
+.hsplit::before{content:"";position:absolute;left:50%;top:4px;width:40px;height:5px;margin-left:-20px;border-top:1px solid var(--muted);border-bottom:1px solid var(--muted);opacity:.7}
+.hsplit:hover,.hsplit.drag{background:var(--accent-soft)}
+body.resizing{user-select:none;cursor:inherit}
+main.side-off aside{overflow:hidden;border-right:0}
 .bom h3,.steps h3{margin:0 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .bom ul,.steps ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
 .bom li{display:flex;align-items:center;gap:8px;font-size:12.5px}
@@ -143,6 +154,7 @@ aside{min-width:0;background:var(--panel);border-right:1px solid var(--line);dis
   .chip{font-size:12px}
 }
 @media (max-width:820px){
+  .vsplit,.hsplit{display:none}
   main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
   aside{grid-row:2;border-right:0;border-top:1px solid var(--line);max-height:42vh}
   .lib{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:92px;overflow-x:auto;overflow-y:hidden;padding-bottom:10px}
@@ -170,6 +182,7 @@ aside{min-width:0;background:var(--panel);border-right:1px solid var(--line);dis
       <button id="lTh" aria-pressed="true" lang="th">TH</button>
       <button id="lEn" aria-pressed="false" lang="en">EN</button>
     </div>
+    <button class="btn icon" id="bFull" hidden></button>
     <button class="btn icon" id="bSnd" aria-pressed="true"></button>
     <button class="btn" id="bOpen" data-i18n="open">Open</button>
     <button class="btn primary" id="bSave" data-i18n="save">Save</button>
@@ -180,7 +193,8 @@ aside{min-width:0;background:var(--panel);border-right:1px solid var(--line);dis
       <div id="buildSide" style="display:contents">
         <div class="tabs" id="tabs"></div>
         <div class="lib" id="lib"></div>
-        <div class="bom"><h3 data-i18n="bomTitle"></h3><ul id="bom"></ul></div>
+        <div class="hsplit" id="hsplit" role="separator" aria-orientation="horizontal" tabindex="0" data-i18n-title="resizeHint"></div>
+        <div class="bom" id="bomBox"><h3 data-i18n="bomTitle"></h3><ul id="bom"></ul></div>
       </div>
       <div id="instrSide" class="steps" hidden>
         <div class="stepnum" id="stepNum">1 <small>/ 1</small></div>
@@ -194,6 +208,7 @@ aside{min-width:0;background:var(--panel);border-right:1px solid var(--line);dis
         <ul id="viewParts" class="vparts"></ul>
       </div>
     </aside>
+    <div class="vsplit" id="vsplit" role="separator" aria-orientation="vertical" tabindex="0" data-i18n-title="resizeHint"><span class="grip"></span></div>
     <section class="stage" id="stage">
       <canvas id="c" role="img" data-i18n-aria="canvas"></canvas>
       <div class="hint">
@@ -262,7 +277,7 @@ th:{
   hConn:'{0} รู {1} จาก {2} เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง',hPin:'{0} ปลาย {1}/{2} เสียบลึก {3}/{4} ช่อง กด T สลับปลาย กด D หรือเลื่อนลูกกลิ้งเปลี่ยนความลึก',hLockShort:'(ล็อกรูไว้)',depth:'ลึก',hLock:'ล็อกรูนี้ไว้ เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง ปล่อย T เพื่อปลดล็อก',hConnTouch:'{0} รู {1} จาก {2} แตะซ้ำหรือกด วาง',
   hGround:'{0} วางบนพื้น แตะซ้ำหรือกด วาง',
   tStepEmpty:'Step {0} ยังไม่มีชิ้น วางชิ้นก่อนแล้วค่อยขึ้น Step ใหม่',tStepStart:'เริ่ม Step {0}',
-  tSavedLocal:'บันทึก {0} ไว้ในเครื่องนี้แล้ว เปิดดูได้ที่ เปิดโมเดล',tQuotaLocal:'พื้นที่ในเครื่องเต็ม ลบโมเดลเก่าที่ เปิดโมเดล ก่อน',putBack:'วางคืน',viewParts:'ชิ้นในโมเดลนี้',viewHint:'แตะชิ้นส่วนเพื่อดูชื่อ ลากเพื่อหมุนดูรอบๆ',galleryHint:'ปัดซ้ายขวาเพื่อดูรอบตัวหุ่น',angleOf:'เลือกมุมมอง',making:'กำลังสร้างภาพ 10 มุม',deselect:'ยกเลิกเลือก',sound:'เสียง',examples:'โมเดลตัวอย่าง',mine:'โมเดลของฉัน',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
+  tSavedLocal:'บันทึก {0} ไว้ในเครื่องนี้แล้ว เปิดดูได้ที่ เปิดโมเดล',tQuotaLocal:'พื้นที่ในเครื่องเต็ม ลบโมเดลเก่าที่ เปิดโมเดล ก่อน',putBack:'วางคืน',fullscreen:'เต็มจอ',exitFull:'ออกจากเต็มจอ',resizeHint:'ลากเพื่อปรับขนาด ดับเบิลคลิกเพื่อย่อหรือขยาย',viewParts:'ชิ้นในโมเดลนี้',viewHint:'แตะชิ้นส่วนเพื่อดูชื่อ ลากเพื่อหมุนดูรอบๆ',galleryHint:'ปัดซ้ายขวาเพื่อดูรอบตัวหุ่น',angleOf:'เลือกมุมมอง',making:'กำลังสร้างภาพ 10 มุม',deselect:'ยกเลิกเลือก',sound:'เสียง',examples:'โมเดลตัวอย่าง',mine:'โมเดลของฉัน',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
   tQuota:'พื้นที่เก็บเต็ม ลบโมเดลเก่าก่อน',tSaveFail:'บันทึกไม่ได้ สิทธิ์นี้ดูได้อย่างเดียว ใช้ ไฟล์ แทน',
   openTitle:'เปิดโมเดล',loadingShort:'กำลังโหลด',startNew:'เริ่มโมเดลใหม่',close:'ปิด',openBtn:'เปิด',del:'ลบ',delConfirm:'ยืนยันลบ',
   noSaved:'ยังไม่มีโมเดลที่บันทึกไว้ ประกอบแล้วกด บันทึก',meta:'{0} ชิ้น, {1}',example:'โมเดลตัวอย่าง',
@@ -288,7 +303,7 @@ en:{
   hConn:'{0} hole {1} of {2}. Scroll or press T to change hole, click to place',hPin:'{0} end {1}/{2}, depth {3}/{4}. T flips the end, D or scroll changes the depth',hLockShort:'(hole locked)',depth:'Depth',hLock:'Hole locked. Scroll or press T to change hole, click to place. Release T to unlock',hConnTouch:'{0} hole {1} of {2}. Tap again or press Place',
   hGround:'{0} on the floor. Tap again or press Place',
   tStepEmpty:'Step {0} has no parts yet. Place a part before starting a new step',tStepStart:'Started step {0}',
-  tSavedLocal:'Saved {0} on this device. Find it in Open',tQuotaLocal:'Device storage is full. Delete an old model in Open first',putBack:'Put back',viewParts:'Parts in this model',viewHint:'Tap a part to see its name. Drag to turn the model',galleryHint:'Swipe left or right to look around the robot',angleOf:'Choose a view',making:'Making 10 pictures',deselect:'Deselect',sound:'Sound',examples:'Example models',mine:'My models',tSavedDb:'Saved {0}. Everyone with this link can see it',
+  tSavedLocal:'Saved {0} on this device. Find it in Open',tQuotaLocal:'Device storage is full. Delete an old model in Open first',putBack:'Put back',fullscreen:'Full screen',exitFull:'Exit full screen',resizeHint:'Drag to resize, double-click to collapse or restore',viewParts:'Parts in this model',viewHint:'Tap a part to see its name. Drag to turn the model',galleryHint:'Swipe left or right to look around the robot',angleOf:'Choose a view',making:'Making 10 pictures',deselect:'Deselect',sound:'Sound',examples:'Example models',mine:'My models',tSavedDb:'Saved {0}. Everyone with this link can see it',
   tQuota:'Storage is full. Delete an old model first',tSaveFail:'Could not save. You have view only access. Use File instead',
   openTitle:'Open model',loadingShort:'Loading',startNew:'Start a new model',close:'Close',openBtn:'Open',del:'Delete',delConfirm:'Confirm delete',
   noSaved:'No saved models yet. Build one and press Save',meta:'{0} parts, {1}',example:'example model',
@@ -1028,10 +1043,49 @@ $('fileIn').onchange=async e=>{
   e.target.value='';
 };
 
+/* ---------- full screen ---------- */
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+const SVG_FS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+const SVG_FSX='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+function renderFull(){ const b=$('bFull'), r=document.documentElement; b.hidden=!(r.requestFullscreen||r.webkitRequestFullscreen); const on=!!fsEl(); b.innerHTML=on?SVG_FSX:SVG_FS; b.title=t(on?'exitFull':'fullscreen'); b.setAttribute('aria-label',b.title); b.setAttribute('aria-pressed',on); }
+$('bFull').onclick=async()=>{ sfx('ui'); const r=document.documentElement;
+  try{ if(fsEl()) await (document.exitFullscreen||document.webkitExitFullscreen).call(document); else await (r.requestFullscreen||r.webkitRequestFullscreen).call(r); }catch{} };
+document.addEventListener('fullscreenchange',renderFull); document.addEventListener('webkitfullscreenchange',renderFull);
+
+/* ---------- resizable side panel and used-parts box ---------- */
+const sizes={side:300,bom:220,sideOld:300,bomOld:220};
+try{ Object.assign(sizes,JSON.parse(localStorage.getItem('vexgo-sizes')||'{}')); }catch{}
+function applySizes(){
+  const main=document.querySelector('main');
+  main.style.setProperty('--side-w',sizes.side+'px'); main.classList.toggle('side-off',sizes.side<1);
+  document.documentElement.style.setProperty('--bom-h',sizes.bom+'px');
+  const bb=$('bomBox'); if(bb) bb.hidden=sizes.bom<1;   // fully tucked away, only the handle stays
+  try{ localStorage.setItem('vexgo-sizes',JSON.stringify(sizes)); }catch{}
+}
+function dragHandle(el,key,axis,min,maxFn){
+  let start=null;
+  el.addEventListener('pointerdown',e=>{ e.preventDefault(); el.setPointerCapture(e.pointerId); start={c:axis==='x'?e.clientX:e.clientY,v:sizes[key]}; el.classList.add('drag'); document.body.classList.add('resizing'); });
+  el.addEventListener('pointermove',e=>{ if(!start) return; const d=(axis==='x'?e.clientX:e.clientY)-start.c;
+    let v=start.v+(axis==='x'?d:-d); v=Math.max(0,Math.min(maxFn(),v)); if(v<min) v=v<min/2?0:min; sizes[key]=Math.round(v); applySizes(); });
+  const end=()=>{ if(!start) return; start=null; el.classList.remove('drag'); document.body.classList.remove('resizing'); if(sizes[key]>0) sizes[key+'Old']=sizes[key]; applySizes(); };
+  el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+  const toggle=()=>{ sfx('ui'); if(sizes[key]>0){ sizes[key+'Old']=sizes[key]; sizes[key]=0; } else sizes[key]=sizes[key+'Old']||(key==='side'?300:220); applySizes(); };
+  el.addEventListener('dblclick',toggle);
+  el.addEventListener('keydown',e=>{ const step=e.shiftKey?60:20;
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); return; }
+    const grow=axis==='x'?{ArrowRight:1,ArrowLeft:-1}:{ArrowUp:1,ArrowDown:-1}; if(!(e.key in grow)) return;
+    e.preventDefault(); sizes[key]=Math.max(0,Math.min(maxFn(),sizes[key]+grow[e.key]*step)); applySizes(); });
+}
+dragHandle($('vsplit'),'side','x',140,()=>Math.min(innerWidth*0.75,1000));
+dragHandle($('hsplit'),'bom','y',60,()=>Math.max(60,$('side').getBoundingClientRect().height-90));
+applySizes();
+
 /* ---------- language switch ---------- */
 function applyLang(){
   document.documentElement.lang=lang;
   document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});
+  if($('bFull')) renderFull();
   document.querySelectorAll('[data-i18n-aria]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAria));});
   $('lTh').setAttribute('aria-pressed',lang==='th'); $('lEn').setAttribute('aria-pressed',lang==='en');
   if(isDefaultName(model.name)){ model.name=t('newModel'); }
