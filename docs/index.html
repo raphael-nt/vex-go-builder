@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>VEX GO Builder</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +26,7 @@
   --mat:#1d242e; --mat-line:#2c3542; --accent:#6c9cf0; --accent-ink:#0d1420; --accent-soft:#223453;
   --sun:#f4c21b; --warn:#ff8a73; --warn-soft:#3c211d; --ok:#5cc988; --thumb:#cfd6df; color-scheme:dark}
 [hidden]{display:none!important}
+body{margin:0} img{max-width:100%}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;overflow:hidden}
 #app{height:100%;display:grid;grid-template-rows:auto 1fr;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
@@ -98,7 +104,8 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-
+</head>
+<body>
 <div id="app">
   <header>
     <div class="brand"><i></i>VEX GO Builder</div>
@@ -156,13 +163,14 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 </div>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
 
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/","three-mesh-bvh":"https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.8/build/index.module.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
-import {toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
+import {computeBoundsTree,acceleratedRaycast} from 'three-mesh-bvh';
+THREE.BufferGeometry.prototype.computeBoundsTree=computeBoundsTree; THREE.Mesh.prototype.raycast=acceleratedRaycast;   // BVH picking, full CAD meshes are dense
 
 const $=id=>document.getElementById(id);
 
@@ -264,21 +272,38 @@ function resize(){const r=stage.getBoundingClientRect(); renderer.setSize(r.widt
 new ResizeObserver(resize).observe(stage);
 
 /* ---------- loading ---------- */
+/* A part is a list of primitives, one per CAD color: {g: geometry in part space, name: material name, hex: CAD color}.
+   GLB files are meshopt compressed and quantized, so attributes are expanded to Float32 before baking the node transform. */
+function toFloat(attr){ const n=attr.count, k=attr.itemSize, a=new Float32Array(n*k); for(let i=0;i<n;i++) for(let j=0;j<k;j++) a[i*k+j]=attr.getComponent(i,j); return new THREE.BufferAttribute(a,k); }
 async function geo(sid){
   if(geoCache[sid]) return geoCache[sid];
   const p=(async()=>{
-    const res=await fetch('m/'+PART[sid].file+'.json'); if(!res.ok) throw new Error('mesh '+res.status);
-    const j=await res.json(); const bin=Uint8Array.from(atob(j.glb),c=>c.charCodeAt(0)).buffer; const g=await loader.parseAsync(bin,'');
-    let m=null; g.scene.traverse(o=>{if(o.isMesh&&!m)m=o});
-    m.updateWorldMatrix(true,false);
-    let gg=m.geometry.clone(); gg.applyMatrix4(m.matrixWorld); gg.deleteAttribute('normal');
-    for(const k of Object.keys(gg.attributes)) if(k!=='position') gg.deleteAttribute(k);
-    gg=toCreasedNormals(gg,Math.PI/5); gg.computeBoundingBox(); gg.computeBoundingSphere();
-    return gg;
+    const g=await loader.loadAsync('m/'+PART[sid].file+'.glb');
+    g.scene.updateMatrixWorld(true);
+    const prims=[], box=new THREE.Box3();
+    g.scene.traverse(o=>{
+      if(!o.isMesh) return;
+      const gg=new THREE.BufferGeometry();
+      gg.setAttribute('position',toFloat(o.geometry.attributes.position));
+      if(o.geometry.attributes.normal) gg.setAttribute('normal',toFloat(o.geometry.attributes.normal));
+      if(o.geometry.index) gg.setIndex(o.geometry.index);
+      gg.applyMatrix4(o.matrixWorld);
+      if(!gg.attributes.normal) gg.computeVertexNormals();
+      gg.computeBoundingBox(); gg.computeBoundingSphere(); gg.computeBoundsTree();
+      box.union(gg.boundingBox);
+      prims.push({g:gg,name:o.material.name||'',hex:'#'+o.material.color.getHexString(THREE.SRGBColorSpace)});
+    });
+    return {prims,box};
   })();
   geoCache[sid]=p;
   p.catch(()=>{ if(geoCache[sid]===p) delete geoCache[sid]; });   // a failed fetch must be retryable
   return p;
+}
+/* kit color variant: replaces some CAD materials (usually the main body) with the kit color */
+function overrides(sid,col){ const c=PART[sid].colors.find(x=>x.c===col)||PART[sid].colors[0]; return c.ov||{}; }
+function partMeshes(sid,col,kind){
+  const ov=overrides(sid,col);
+  return geoCache[sid]._v.prims.map(pr=>new THREE.Mesh(pr.g,mat(ov[pr.name]||pr.hex,kind)));
 }
 async function ensureGeo(sid){ const g=await geo(sid); geoCache[sid]._v=g; return g; }
 const geoAll=ids=>Promise.all(ids.map(ensureGeo));
@@ -345,10 +370,11 @@ async function syncScene(visibleUpTo=Infinity,animStep=null){
   root.clear(); meshes.length=0;         // clear only after the await so two syncs can never both add
   model.parts.forEach((p,i)=>{
     if(p.step>visibleUpTo) return;
-    const m=new THREE.Mesh(geoCache[p.sid]._v,mat(p.hex,i===selected?'s':''));
-    m.position.fromArray(p.p); m.quaternion.fromArray(p.q); m.userData={i,home:m.position.clone(),dir:V(p.dir||[0,0,1])};
-    if(animStep!==null&&p.step===animStep) m.userData.anim=true;
-    root.add(m); meshes.push(m);
+    const home=V(p.p), dir=V(p.dir||[0,0,1]), anim=animStep!==null&&p.step===animStep;
+    for(const m of partMeshes(p.sid,p.col,i===selected?'s':'')){
+      m.position.copy(home); m.quaternion.fromArray(p.q); m.userData={i,home,dir,anim};
+      root.add(m); meshes.push(m);
+    }
   });
   need();
   if(animStep!==null) runAnim();
@@ -375,7 +401,7 @@ let ghost=null, pose=null;
 async function updateGhost(){
   ghostRoot.clear(); ghost=null; pose=null; hl.visible=false; need();
   if(!armed||mode!=='build'||!hover) { updateHint(); return; }
-  const g=await ensureGeo(armed.sid);
+  await ensureGeo(armed.sid);
   if(!armed||!hover) { updateHint(); return; }
   if(hover.type==='conn'){
     const opts=srcOptions(hover.c); if(!opts.length){updateHint();return;}
@@ -383,7 +409,8 @@ async function updateGhost(){
     hl.position.copy(hover.c.p); hl.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),hover.c.n); hl.visible=true;
   } else pose=groundPose(hover.pt);
   ghostRoot.clear();
-  ghost=new THREE.Mesh(g,mat(armed.hex,'g')); ghost.position.copy(pose.pos); ghost.quaternion.copy(pose.q); ghostRoot.add(ghost);
+  ghost=new THREE.Group(); for(const m of partMeshes(armed.sid,armed.col,'g')) ghost.add(m);
+  ghost.position.copy(pose.pos); ghost.quaternion.copy(pose.q); ghostRoot.add(ghost);
   updateHint(); need();
 }
 function updateHint(){
@@ -398,7 +425,7 @@ function updateHint(){
 }
 
 /* ---------- picking ---------- */
-const ray=new THREE.Raycaster(); const ndc=new THREE.Vector2();
+const ray=new THREE.Raycaster(); ray.firstHitOnly=true; const ndc=new THREE.Vector2();
 function setNdc(e){const r=canvas.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); return r;}
 function pick(e){
   const r=setNdc(e); ray.setFromCamera(ndc,camera);
@@ -410,7 +437,7 @@ function pick(e){
       const dx=(v.x-ndc.x)*r.width/2, dy=(v.y-ndc.y)*r.height/2, d=dx*dx+dy*dy;
       if(d<bd){ // occlusion
         const dist=camera.position.distanceTo(c.p);
-        const rr=new THREE.Raycaster(camera.position,c.p.clone().sub(camera.position).normalize(),0,dist-3.5);
+        const rr=new THREE.Raycaster(camera.position,c.p.clone().sub(camera.position).normalize(),0,dist-3.5); rr.firstHitOnly=true;
         if(rr.intersectObjects(meshes,false).length) continue;
         bd=d; best=c;
       }
@@ -536,7 +563,7 @@ $('iRange').oninput=e=>showStep(+e.target.value-1);
 
 function frame(all=true){
   const b=new THREE.Box3();
-  if(all){ for(const p of model.parts){ const g=geoCache[p.sid]&&geoCache[p.sid]._v; if(!g) continue; const bb=g.boundingBox.clone().applyMatrix4(new THREE.Matrix4().compose(V(p.p),new THREE.Quaternion(...p.q),new THREE.Vector3(1,1,1))); b.union(bb);} }
+  if(all){ for(const p of model.parts){ const g=geoCache[p.sid]&&geoCache[p.sid]._v; if(!g) continue; const bb=g.box.clone().applyMatrix4(new THREE.Matrix4().compose(V(p.p),new THREE.Quaternion(...p.q),new THREE.Vector3(1,1,1))); b.union(bb);} }
   if(b.isEmpty()) for(const m of meshes) b.expandByObject(m);
   if(b.isEmpty()) return;
   const c=b.getCenter(new THREE.Vector3()), r=b.getSize(new THREE.Vector3()).length()/2;
@@ -648,8 +675,12 @@ $('bMore').onclick=()=>{
   s.querySelector('#fi').onclick=()=>{s.remove(); $('fileIn').click();};
   s.querySelector('#fx').onclick=async()=>{
     const data=JSON.stringify({name:model.name,ref:model.ref||null,step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step})=>({sid,col,p,q,dir,step}))},null,1);
-    try{ const dl=await claude.use('downloads'); if(!dl) throw 0; await dl.save({filename:(model.name||'model').replace(/[\\/:*?"<>|]/g,'_')+'.json',data}); s.remove(); }
-    catch(e){ try{await navigator.clipboard.writeText(data); toast(t('tCopied'));}catch{toast(t('tNoDl'));} }
+    const filename=(model.name||'model').replace(/[\\/:*?"<>|]/g,'_')+'.json';
+    try{
+      if(window.claude&&claude.use){ const dl=await claude.use('downloads'); if(dl){ await dl.save({filename,data}); s.remove(); return; } }
+      const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([data],{type:'application/json'})); a.download=filename;   // normal web hosting
+      document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); s.remove();
+    }catch(e){ try{await navigator.clipboard.writeText(data); toast(t('tCopied'));}catch{toast(t('tNoDl'));} }
   };
 };
 $('fileIn').onchange=async e=>{
@@ -700,3 +731,5 @@ function loop(now){
 })();
 window.__vx={meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
 </script>
+</body>
+</html>

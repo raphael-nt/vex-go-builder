@@ -19,7 +19,7 @@ cd docs
 python3 -m http.server 8000
 ```
 
-Open http://localhost:8000. three.js loads from the jsDelivr CDN, so the first load needs internet.
+Open http://localhost:8000. three.js and three-mesh-bvh load from the jsDelivr CDN, so the first load needs internet.
 
 ## Deploy
 
@@ -31,12 +31,22 @@ Saving to a shared database only works inside Claude artifacts. On a normal host
 ## Layout
 
 ```
-docs/    the web app (index.html, parts.json, models, m/ meshes, t/ thumbnails)
-tools/   STEP to mesh pipeline: conv, batch, export, holes, connectors, catalog, trim
+docs/    the web app (index.html, parts.json, models, m/ part meshes as .glb, t/ thumbnails)
+tools/   step2glb.py turns the VEX GO STEP files into GLB meshes, colors.py writes kit colors into parts.json,
+         the rest (holes, connectors, catalog) find the pin and shaft holes
 build/   scripted models (lib.py, base.py, adv.py) that write the model JSON
 ```
 
-The pipeline needs `cadquery-ocp`, `trimesh`, `fast-simplification` and `gltfpack`. Paths inside the scripts point to the original working folders, so adjust them before rerunning.
+Meshes keep the full STEP tessellation (no polygon reduction) and the CAD colors of every face.
+Each GLB has one material per color. The largest one is named `main_<hex>`, and a kit color variant
+in `parts.json` (`ov`) can replace it, for example the red and green Disk. Electronics cables are removed.
+
+```
+python3 tools/step2glb.py "<GO kit STEP folder>" glb      # needs cadquery-ocp, trimesh, gltfpack (npm)
+python3 tools/colors.py                                  # after reading mesh bounds and material names
+```
+
+Some script paths point to the original working folders, so adjust them before rerunning.
 
 ## Parts data
 
