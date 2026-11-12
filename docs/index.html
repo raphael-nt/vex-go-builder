@@ -1493,7 +1493,7 @@ $('vGrp').onclick=()=>{ const p=$('gpanel'); p.hidden=!p.hidden; $('vGrp').setAt
 $('gClose').onclick=()=>$('vGrp').click();
 
 /* ---- cloud: Supabase RPC, same project as Alvik Match Control ---- */
-const SB_URL='https://sylaqdubfjgmaxhtrrnk.supabase.co', SB_KEY='sb_publishable_9x3-7C7fLbQZBDtkk8YAGw_P1XclMv8';
+const SB_URL='https://pfzmugbrmadtykftdced.supabase.co', SB_KEY='sb_publishable_IRqaKk5SZmfriZZUZX1Beg_qVpSmRpn';
 let space='irap'; try{ space=localStorage.getItem('vexgo-space')||'irap'; }catch{}
 function devKey(){ try{ let k=localStorage.getItem('vexgo-key'); if(!k){ k=[...crypto.getRandomValues(new Uint8Array(24))].map(b=>b.toString(16).padStart(2,'0')).join(''); localStorage.setItem('vexgo-key',k); } return k; }catch{ return null; } }
 async function rpc(fn,args){

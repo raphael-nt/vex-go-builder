@@ -1,4 +1,4 @@
--- VEX GO Builder cloud models (run once in Supabase SQL editor, project sylaqdubfjgmaxhtrrnk)
+-- VEX GO Builder cloud models (run once in Supabase SQL editor, project pfzmugbrmadtykftdced (vex-go-builder))
 -- Anyone who knows a space code can list and open its models; only the holder of the edit key can change or delete.
 create table if not exists public.vexgo_models (
   id uuid primary key default gen_random_uuid(),
