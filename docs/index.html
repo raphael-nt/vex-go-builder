@@ -118,6 +118,9 @@ aside{min-width:0;background:var(--panel);border-right:1px solid var(--line);dis
 .gdots{display:flex;gap:5px;justify-content:center;padding:6px 0 0}
 .vparts li{cursor:pointer}
 .vparts li[aria-pressed="true"]{outline:2px solid var(--accent);background:var(--accent-soft)}
+.slide{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;padding:0 6px;color:var(--ink);flex:none}
+.slide input{width:150px;accent-color:var(--accent)}
+.tools #tPick{order:-2}
 .tools #hold{order:-3} .tools #tCancel{order:-2} .tools #tPlace{order:-1}
 .mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .mlist li{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
@@ -201,9 +204,12 @@ aside{min-width:0;background:var(--panel);border-right:1px solid var(--line);dis
         <div class="hold" id="hold" hidden><img alt=""><span></span></div>
         <button class="btn" id="tRot"><span data-i18n="rotate"></span><kbd>R</kbd></button>
         <button class="btn" id="tPt"><span data-i18n="changeHole"></span><kbd>T</kbd></button>
+        <button class="btn" id="tDepth" hidden><span data-i18n="depth"></span> <b id="tDepthN"></b><kbd>D</kbd></button>
         <button class="btn" id="tTilt"><span data-i18n="tilt"></span><kbd>F</kbd></button>
         <button class="btn primary" id="tPlace" data-i18n="place"></button>
         <button class="btn" id="tUndo">Undo</button>
+        <button class="btn primary" id="tPick" hidden data-i18n="pickUp"></button>
+        <label class="slide" id="slideBox" hidden><span data-i18n="slide"></span><input type="range" id="tSlide" step="0.25"></label>
         <button class="btn warn" id="tDel" hidden data-i18n="delPart"></button>
         <button class="btn" id="tCancel" hidden></button>
         <button class="btn" id="tStep" data-i18n="newStep"></button>
@@ -249,11 +255,11 @@ th:{
   prev:'ก่อนหน้า',next:'ถัดไป',chooseStep:'เลือก Step',loading:'กำลังโหลดชิ้นส่วน',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pin และ Connector',tab_motion:'Gear Wheel Shaft',tab_other:'อื่นๆ',tab_elec:'Electronics',
   iqName:'ชื่อใน VEX IQ Legal Parts',
-  hSel:'{0} ถูกเลือก แตะ ลบชิ้นนี้ หรือแตะที่ว่างเพื่อยกเลิก',
+  hSel:'{0} ถูกเลือก กด ถอดออก เพื่อย้ายไปที่อื่น หรือแตะที่ว่างเพื่อยกเลิก',hSelSlide:'{0} ถูกเลือก ลากแถบ เลื่อนบนแกน หรือกดลูกศรขึ้นลง กด ถอดออก เพื่อย้าย',pickUp:'ถอดออก',slide:'เลื่อนบนแกน',
   hPick:'เลือกชิ้นจากคลัง หรือแตะชิ้นบนโมเดลเพื่อเลือก',
   hFirst:'เลือกชิ้นแรกจากคลัง แล้วแตะบนพื้นเพื่อวาง',
   hArmed:'{0} แตะจุดบนโมเดล หรือแตะพื้นเพื่อวาง',
-  hConn:'{0} รู {1} จาก {2} เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง',hLock:'ล็อกรูนี้ไว้ เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง ปล่อย T เพื่อปลดล็อก',hConnTouch:'{0} รู {1} จาก {2} แตะซ้ำหรือกด วาง',
+  hConn:'{0} รู {1} จาก {2} เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง',hPin:'{0} ปลาย {1}/{2} เสียบลึก {3}/{4} ช่อง กด T สลับปลาย กด D หรือเลื่อนลูกกลิ้งเปลี่ยนความลึก',hLockShort:'(ล็อกรูไว้)',depth:'ลึก',hLock:'ล็อกรูนี้ไว้ เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง ปล่อย T เพื่อปลดล็อก',hConnTouch:'{0} รู {1} จาก {2} แตะซ้ำหรือกด วาง',
   hGround:'{0} วางบนพื้น แตะซ้ำหรือกด วาง',
   tStepEmpty:'Step {0} ยังไม่มีชิ้น วางชิ้นก่อนแล้วค่อยขึ้น Step ใหม่',tStepStart:'เริ่ม Step {0}',
   tSavedLocal:'บันทึก {0} ไว้ในเครื่องนี้แล้ว เปิดดูได้ที่ เปิดโมเดล',tQuotaLocal:'พื้นที่ในเครื่องเต็ม ลบโมเดลเก่าที่ เปิดโมเดล ก่อน',putBack:'วางคืน',viewParts:'ชิ้นในโมเดลนี้',viewHint:'แตะชิ้นส่วนเพื่อดูชื่อ ลากเพื่อหมุนดูรอบๆ',galleryHint:'ปัดซ้ายขวาเพื่อดูรอบตัวหุ่น',angleOf:'เลือกมุมมอง',making:'กำลังสร้างภาพ 10 มุม',deselect:'ยกเลิกเลือก',sound:'เสียง',examples:'โมเดลตัวอย่าง',mine:'โมเดลของฉัน',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
@@ -262,7 +268,7 @@ th:{
   noSaved:'ยังไม่มีโมเดลที่บันทึกไว้ ประกอบแล้วกด บันทึก',meta:'{0} ชิ้น, {1}',example:'โมเดลตัวอย่าง',
   tDelFail:'ลบไม่ได้ ต้องมีสิทธิ์แก้ไข',
   fileTitle:'ไฟล์โมเดล',fileDesc:'ส่งออกเป็นไฟล์ JSON เก็บไว้หรือส่งให้คนอื่นเปิดต่อ',dl:'ดาวน์โหลด JSON',openJson:'เปิดไฟล์ JSON',
-  tCopied:'คัดลอก JSON ไว้ในคลิปบอร์ดแล้ว',tNoDl:'ดาวน์โหลดไม่ได้ในหน้านี้',tOpened:'เปิด {0} แล้ว',tBadFile:'ไฟล์นี้ไม่ใช่โมเดล VEX GO Builder',
+  tCopied:'คัดลอก JSON ไว้ในคลิปบอร์ดแล้ว',tNoDl:'ดาวน์โหลดไม่ได้ในหน้านี้',tOpened:'เปิด {0} แล้ว และเก็บไว้ใน โมเดลของฉัน',tBadFile:'ไฟล์นี้ไม่ใช่โมเดล VEX GO Builder',
   tLoadFail:'โหลดชิ้นส่วนไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่',noWebgl:'อุปกรณ์นี้ไม่รองรับ WebGL จึงแสดงโมเดล 3 มิติไม่ได้',bootFail:'โหลดข้อมูลชิ้นส่วนไม่ได้ ลองรีเฟรชหน้า'
 },
 en:{
@@ -275,11 +281,11 @@ en:{
   prev:'Back',next:'Next',chooseStep:'Choose step',loading:'Loading parts',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pins and Connectors',tab_motion:'Gears, Wheels, Shafts',tab_other:'Other',tab_elec:'Electronics',
   iqName:'Name in VEX IQ Legal Parts',
-  hSel:'{0} selected. Tap Delete part, or tap empty space to cancel',
+  hSel:'{0} selected. Press Take off to move it, or tap empty space to cancel',hSelSlide:'{0} selected. Drag Slide on shaft or use the up and down arrows. Press Take off to move it',pickUp:'Take off',slide:'Slide on shaft',
   hPick:'Pick a part from the library, or tap a part on the model to select it',
   hFirst:'Pick the first part from the library, then tap the floor to place it',
   hArmed:'{0} Tap a hole on the model, or tap the floor to place',
-  hConn:'{0} hole {1} of {2}. Scroll or press T to change hole, click to place',hLock:'Hole locked. Scroll or press T to change hole, click to place. Release T to unlock',hConnTouch:'{0} hole {1} of {2}. Tap again or press Place',
+  hConn:'{0} hole {1} of {2}. Scroll or press T to change hole, click to place',hPin:'{0} end {1}/{2}, depth {3}/{4}. T flips the end, D or scroll changes the depth',hLockShort:'(hole locked)',depth:'Depth',hLock:'Hole locked. Scroll or press T to change hole, click to place. Release T to unlock',hConnTouch:'{0} hole {1} of {2}. Tap again or press Place',
   hGround:'{0} on the floor. Tap again or press Place',
   tStepEmpty:'Step {0} has no parts yet. Place a part before starting a new step',tStepStart:'Started step {0}',
   tSavedLocal:'Saved {0} on this device. Find it in Open',tQuotaLocal:'Device storage is full. Delete an old model in Open first',putBack:'Put back',viewParts:'Parts in this model',viewHint:'Tap a part to see its name. Drag to turn the model',galleryHint:'Swipe left or right to look around the robot',angleOf:'Choose a view',making:'Making 10 pictures',deselect:'Deselect',sound:'Sound',examples:'Example models',mine:'My models',tSavedDb:'Saved {0}. Everyone with this link can see it',
@@ -288,7 +294,7 @@ en:{
   noSaved:'No saved models yet. Build one and press Save',meta:'{0} parts, {1}',example:'example model',
   tDelFail:'Could not delete. Editor access is needed',
   fileTitle:'Model file',fileDesc:'Export as a JSON file to keep or send to someone else',dl:'Download JSON',openJson:'Open JSON file',
-  tCopied:'JSON copied to the clipboard',tNoDl:'Downloads are not available here',tOpened:'Opened {0}',tBadFile:'This file is not a VEX GO Builder model',
+  tCopied:'JSON copied to the clipboard',tNoDl:'Downloads are not available here',tOpened:'Opened {0} and added it to My models',tBadFile:'This file is not a VEX GO Builder model',
   tLoadFail:'Could not load parts. Check the connection and try again',noWebgl:'This device does not support WebGL, so the 3D view cannot be shown',bootFail:'Could not load the part data. Try refreshing the page'
 }};
 let lang='th';
@@ -409,6 +415,24 @@ function srcOptions(target){
   out.sort((a,b)=>(isM(P.conn[b].k)-isM(P.conn[a].k)));
   return out;
 }
+/* Pins and shafts (parts whose connectors are all male): options are grouped by which end goes in,
+   and inside a group sorted from shallow to deep, so the user picks the end (T) and the depth (D or scroll). */
+const maleOnly=sid=>PART[sid].conn.length>0&&PART[sid].conn.every(c=>isM(c.k));
+function optGroups(target){
+  if(!maleOnly(armed.sid)) return null;
+  const P=PART[armed.sid], gs=new Map();
+  for(const j of srcOptions(target)){ const n=P.conn[j].n, key=n.map(x=>Math.round(x*10)).join(','); if(!gs.has(key)) gs.set(key,[]); gs.get(key).push(j); }
+  const out=[...gs.values()];
+  for(const g of out){ const n=V(P.conn[g[0]].n); g.sort((a,b)=>V(P.conn[b].p).dot(n)-V(P.conn[a].p).dot(n)); }
+  return out;
+}
+let depIdx=0;
+function chosenOption(target){
+  const gs=optGroups(target);
+  if(gs&&gs.length){ const g=gs[((ptIdx%gs.length)+gs.length)%gs.length]; return {j:g[((depIdx%g.length)+g.length)%g.length],end:(ptIdx%gs.length+gs.length)%gs.length,ends:gs.length,dep:((depIdx%g.length)+g.length)%g.length,deps:g.length}; }
+  const o=srcOptions(target); if(!o.length) return null;
+  return {j:o[((ptIdx%o.length)+o.length)%o.length],idx:((ptIdx%o.length)+o.length)%o.length,n:o.length};
+}
 function snapPose(target,j,s){
   const c=PART[armed.sid].conn[j], nB=V(c.n), pB=V(c.p);
   const q1=new THREE.Quaternion().setFromUnitVectors(nB,target.n.clone().negate());
@@ -468,8 +492,8 @@ async function updateGhost(){
   await ensureGeo(armed.sid);
   if(!armed||!hover) { updateHint(); return; }
   if(hover.type==='conn'){
-    const opts=srcOptions(hover.c); if(!opts.length){updateHint();return;}
-    const j=opts[ptIdx%opts.length]; pose=snapPose(hover.c,j,spin);
+    const ch=chosenOption(hover.c); if(!ch){updateHint();return;}
+    pose=snapPose(hover.c,ch.j,spin);
     hl.position.copy(hover.c.p); hl.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),hover.c.n); hl.visible=true;
   } else pose=groundPose(hover.pt);
   ghostRoot.clear();
@@ -482,11 +506,15 @@ function updateHint(){
   const h=$('hintL');
   if(mode==='view'){ h.hidden=false; h.textContent=t(view2d?'galleryHint':'viewHint'); return; }
   if(mode!=='build'){h.hidden=true;return;} h.hidden=false;
-  if(selected>=0){h.textContent=t('hSel',PART[model.parts[selected].sid].name); return;}
+  if(selected>=0){h.textContent=t(slideInfo?'hSelSlide':'hSel',PART[model.parts[selected].sid].name); return;}
   if(!armed){h.textContent=t(model.parts.length?'hPick':'hFirst'); return;}
   const nm=PART[armed.sid].name;
   if(!hover) h.textContent=t('hArmed',nm);
-  else if(hover.type==='conn'){const n=srcOptions(hover.c).length; h.textContent=lockHover?t('hLock')+' ('+((ptIdx%n)+1)+'/'+n+')':t(matchMedia('(pointer:fine)').matches?'hConn':'hConnTouch',nm,(ptIdx%n)+1,n);}
+  else if(hover.type==='conn'){
+    const ch=chosenOption(hover.c); if(!ch){ h.textContent=t('hArmed',nm); return; }
+    if(ch.deps!==undefined) h.textContent=t('hPin',nm,ch.end+1,ch.ends,ch.dep+1,ch.deps)+(lockHover?' '+t('hLockShort'):'');
+    else h.textContent=lockHover?t('hLock')+' ('+(ch.idx+1)+'/'+ch.n+')':t(matchMedia('(pointer:fine)').matches?'hConn':'hConnTouch',nm,ch.idx+1,ch.n);
+  }
   else h.textContent=t('hGround',nm);
 }
 
@@ -527,7 +555,7 @@ canvas.addEventListener('pointermove',e=>{
   moveRaf=requestAnimationFrame(()=>{ moveRaf=0; const ev=moveEv; if(!ev||!armed||lockHover) return; const h=pick(ev);
     if(sameHover(h,hover)) return;
     if(hover&&hover.type==='conn'&&screenDist(hover.c.p,ev)<30) return;   // stay on the current hole until the mouse clearly leaves it, so T and R are not reset
-    hover=h; ptIdx=0; updateGhost(); });
+    hover=h; ptIdx=0; depIdx=0; updateGhost(); });
 });
 canvas.addEventListener('pointerup',e=>{
   if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6||e.button>0){down=null;return;} down=null;
@@ -538,7 +566,7 @@ canvas.addEventListener('pointerup',e=>{
     if(e.pointerType==='mouse'){ if(lockHover){ place(); return; } if(!sameHover(h,hover)&&!(hover&&hover.type==='conn'&&screenDist(hover.c.p,e)<30)){hover=h;ptIdx=0;} if(hover) updateGhost().then(place); return; }
     if(h&&sameHover(h,hover)) place(); else {hover=h;ptIdx=0;updateGhost();}
   } else {
-    selected=(h&&h.type==='part')?h.i:-1; if(selected>=0) sfx('pick'); syncScene(); updateHint();
+    const ni=(h&&h.type==='part')?h.i:-1; if(ni>=0) sfx('pick'); selectPart(ni);
   }
 });
 
@@ -556,10 +584,11 @@ function place(){
 async function afterChange(){ rebuildConns(); await syncScene(); rebuildDots(); updateGhost(); renderBOM(); renderLib(); saveDraft(); }
 $('tPlace').onclick=place;
 $('tRot').onclick=()=>{spin=(spin+1)%4; updateGhost();};
-$('tPt').onclick=()=>{ptIdx++; updateGhost();};
+$('tPt').onclick=()=>{ptIdx++; depIdx=0; updateGhost();};
+$('tDepth').onclick=()=>{depIdx++; sfx('ui'); updateGhost();};
 $('tTilt').onclick=()=>{tilt=(tilt+1)%3; updateGhost();};
 $('tUndo').onclick=()=>{ if(!undoStack.length){ sfx('err'); return; } sfx('undo'); model=JSON.parse(undoStack.pop()); selected=-1; $('tDel').hidden=true; $('mname').value=displayName(model.name); $('curStep').textContent=model.step; afterChange(); };
-$('tDel').onclick=()=>{ if(selected<0) return; sfx('del'); snapshot(); model.parts.splice(selected,1); selected=-1; $('tDel').hidden=true; afterChange(); };
+$('tDel').onclick=()=>{ if(selected<0) return; sfx('del'); snapshot(); model.parts.splice(selected,1); selected=-1; slideInfo=null; $('tDel').hidden=true; afterChange(); };
 $('tStep').onclick=()=>{ const maxUsed=Math.max(0,...model.parts.map(p=>p.step)); if(maxUsed<model.step){sfx('err'); toast(t('tStepEmpty',model.step));return;} sfx('step'); snapshot(); model.step++; $('curStep').textContent=model.step; saveDraft(); toast(t('tStepStart',model.step)); };
 $('mname').oninput=e=>{model.name=e.target.value; edited=true; saveDraft();};
 function closeSheet(){ const s=document.querySelector('.sheet'); if(s){s.remove(); return true;} return false; }
@@ -580,10 +609,12 @@ addEventListener('keydown',e=>{
   if(mode==='build'&&(c==='KeyR'||c==='KeyT'||c==='KeyF')) e.preventDefault();
   if(c==='KeyT'){ if(e.repeat) return; if(armed&&mode==='build'){ $('tPt').click(); if(hover&&hover.type==='conn') setLock(true); } return; }
   if(c==='KeyR'){ if(armed&&mode==='build') $('tRot').click(); return; }
+  if(c==='KeyD'){ if(armed&&mode==='build'&&!$('tDepth').hidden){ e.preventDefault(); $('tDepth').click(); } return; }
   if(c==='KeyF'){ if(armed&&mode==='build') $('tTilt').click(); return; }
   const k=e.key;
   if((k==='Delete'||k==='Backspace')&&selected>=0) $('tDel').click();
   else if(k==='Enter'&&tg!=='BUTTON'&&tg!=='A') place();   // Enter on a focused button must only press that button
+  else if(mode==='build'&&selected>=0&&slideInfo&&(k==='ArrowUp'||k==='ArrowDown')){ e.preventDefault(); snapshot(); moveSelected(slideInfo.t+(k==='ArrowUp'?.5:-.5)); rebuildConns(); saveDraft(); refreshTools(); }
   else if(mode==='instr'&&k==='ArrowRight') $('iNext').click(); else if(mode==='instr'&&k==='ArrowLeft') $('iPrev').click();
   else if(mode==='view'&&view2d&&k==='ArrowRight') $('gNext').click(); else if(mode==='view'&&view2d&&k==='ArrowLeft') $('gPrev').click();
 });
@@ -597,7 +628,9 @@ stage.addEventListener('wheel',e=>{
   const now=performance.now(); if(now-wheelT>250) wheelAcc=0; wheelT=now;
   wheelAcc+=e.deltaY; const step=Math.abs(e.deltaMode===1?wheelAcc*40:wheelAcc);
   if(step<50) return;
-  ptIdx+=wheelAcc>0?1:-1; if(ptIdx<0) ptIdx+=1000; wheelAcc=0; sfx('ui'); updateGhost();
+  const ch=hover&&hover.type==='conn'?chosenOption(hover.c):null;
+  if(ch&&ch.deps>1) depIdx+=wheelAcc>0?1:-1; else ptIdx+=wheelAcc>0?1:-1;
+  wheelAcc=0; sfx('ui'); updateGhost();
 },{capture:true,passive:false});
 function disarm(){armed=null; hover=null; renderLib(); rebuildDots(); updateGhost();}
 let toastT; function toast(s){let el=document.querySelector('.toast'); if(!el){el=document.createElement('div'); el.className='toast'; el.setAttribute('role','status'); document.body.append(el);} el.textContent=s; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,2400);}
@@ -630,12 +663,86 @@ $('bSnd').onclick=()=>{ sndOn=!sndOn; try{localStorage.setItem('vexgo-sound',snd
 function refreshTools(){
   const holding=!!armed&&mode==='build', sel=selected>=0;
   for(const id of ['tRot','tPt','tTilt','tPlace']) $(id).hidden=!holding;
-  $('tDel').hidden=!sel; $('tCancel').hidden=!(holding||sel);
+  const ch=holding&&hover&&hover.type==='conn'?chosenOption(hover.c):null;
+  $('tDepth').hidden=!(ch&&ch.deps>1); if(ch&&ch.deps>1) $('tDepthN').textContent=(ch.dep+1)+'/'+ch.deps;
+  $('tDel').hidden=!sel; $('tCancel').hidden=!(holding||sel); $('tPick').hidden=!sel||holding;
+  $('slideBox').hidden=!(sel&&slideInfo&&!holding);
+  if(sel&&slideInfo){ const r=$('tSlide'); r.min=slideInfo.lo.toFixed(2); r.max=slideInfo.hi.toFixed(2); r.value=slideInfo.t.toFixed(2); }
   $('tCancel').textContent=t(holding?'putBack':'deselect');
   const h=$('hold'); h.hidden=!holding;
   if(holding){ h.querySelector('img').src=`t/${armed.sid}_${armed.col}.png`; h.querySelector('span').textContent=PART[armed.sid].name; }
 }
-$('tCancel').onclick=()=>{ sfx('ui'); if(armed){ disarm(); return; } if(selected>=0){ selected=-1; syncScene(); updateHint(); } };
+/* ---------- take off and slide on a shaft ---------- */
+let slideInfo=null, slideSnap=false;
+const boxOn=(i,n)=>{   // interval of part i projected on direction n
+  const p=model.parts[i], g=geoCache[p.sid]&&geoCache[p.sid]._v; if(!g) return null;
+  const q=new THREE.Quaternion(...p.q), o=V(p.p), b=g.box; let lo=1e9, hi=-1e9;
+  for(const x of [b.min.x,b.max.x]) for(const y of [b.min.y,b.max.y]) for(const z of [b.min.z,b.max.z]){ const d=new THREE.Vector3(x,y,z).applyQuaternion(q).add(o).dot(n); lo=Math.min(lo,d); hi=Math.max(hi,d); }
+  return [lo,hi];
+};
+const onLine=(pt,a,n)=>pt.clone().sub(a).cross(n).length()<.6;
+function eachVertex(j,fn){
+  const p=model.parts[j], g=geoCache[p.sid]&&geoCache[p.sid]._v; if(!g) return;
+  const q=new THREE.Quaternion(...p.q), o=V(p.p), v=new THREE.Vector3();
+  for(const pr of g.prims){ const pa=pr.g.attributes.position; for(let k=0;k<pa.count;k++){ v.fromBufferAttribute(pa,k).applyQuaternion(q).add(o); fn(v); } }
+}
+function radialExtent(i,a,n){ let r=0; eachVertex(i,v=>{ const d=v.clone().sub(a); d.addScaledVector(n,-d.dot(n)); r=Math.max(r,d.length()); }); return Math.min(r,30); }
+function axialRange(i,a,n,R){ let lo=1e9,hi=-1e9; eachVertex(i,v=>{ const d=v.clone().sub(a), ax=d.dot(n); if(d.addScaledVector(n,-ax).lengthSq()>R*R) return; const x=ax+a.dot(n); lo=Math.min(lo,x); hi=Math.max(hi,x); }); return lo<hi?[lo,hi]:null; }
+/* a selected part slides when one of its shaft holes (FS) or pin holes (FP) sits on a shaft (MS connectors on the same line).
+   Range: the shaft length, stopped by every other part threaded on the same line, so nothing overlaps. */
+function computeSlide(i){
+  const shaftC=worldConns(i).find(c=>c.k==='MS');
+  if(shaftC&&maleOnly(model.parts[i].sid)){
+    // the shaft itself moves: it must not run into material on its line, and must stay through every hole it already passes
+    const a=shaftC.p, n=shaftC.n.clone().normalize(), R=1.0;
+    const me=axialRange(i,a,n,R+2); if(!me) return null;
+    let lo=-60, hi=60;
+    model.parts.forEach((q,j)=>{
+      if(j===i) return;
+      eachVertex(j,v=>{ const d=v.clone().sub(a), ax=d.dot(n); if(d.addScaledVector(n,-ax).lengthSq()>R*R) return; const x=ax+a.dot(n);
+        if(x<=me[0]+.05) lo=Math.max(lo,x-me[0]); else if(x>=me[1]-.05) hi=Math.min(hi,x-me[1]); });
+      for(const w of worldConns(j)) if(w.k[0]==='F'&&onLine(w.p,a,n)){ const hpos=w.p.dot(n); if(hpos>=me[0]-.5&&hpos<=me[1]+.5){ lo=Math.max(lo,hpos+1-me[1]); hi=Math.min(hi,hpos-1-me[0]); } }
+    });
+    if(hi-lo<.25) return null;
+    return {n,lo:Math.min(lo,0),hi:Math.max(hi,0),t:0,start:V(model.parts[i].p)};
+  }
+  const mine=worldConns(i).filter(c=>c.k==='FS'||c.k==='FP');
+  for(const c of mine){
+    const a=c.p, n=c.n.clone().normalize();
+    const shaftIdx=model.parts.findIndex((q,j)=>j!==i&&PART[q.sid].conn.some(x=>x.k==='MS')&&worldConns(j).some(w=>w.k==='MS'&&Math.abs(Math.abs(w.n.dot(n))-1)<.02&&onLine(w.p,a,n)&&Math.abs(w.p.dot(n)-a.dot(n))<7));
+    if(shaftIdx<0) continue;
+    const sh=boxOn(shaftIdx,n); if(!sh) continue;
+    // real geometry close to the shaft line, not bounding boxes: a wheel's tire is wide but its hub is narrow
+    const R=radialExtent(i,a,n)+.3, me=axialRange(i,a,n,R); if(!me) continue;
+    let lo=sh[0]-me[0], hi=sh[1]-me[1];
+    model.parts.forEach((q,j)=>{
+      if(j===i||j===shaftIdx) return;
+      eachVertex(j,v=>{ const d=v.clone().sub(a), ax=d.dot(n); if(d.addScaledVector(n,-ax).lengthSq()>R*R) return; const x=ax+a.dot(n);
+        if(x<=me[0]+.05) lo=Math.max(lo,x-me[0]); else if(x>=me[1]-.05) hi=Math.min(hi,x-me[1]); });
+    });
+    if(hi-lo<.25) continue;
+    return {n,lo:Math.min(lo,0),hi:Math.max(hi,0),t:0,start:V(model.parts[i].p)};
+  }
+  return null;
+}
+function moveSelected(tv){
+  if(selected<0||!slideInfo) return;
+  tv=Math.max(slideInfo.lo,Math.min(slideInfo.hi,tv)); slideInfo.t=tv;
+  const np=slideInfo.start.clone().addScaledVector(slideInfo.n,tv), p=model.parts[selected];
+  p.p=np.toArray().map(x=>Math.round(x*1000)/1000);
+  for(const m of meshes) if(m.userData.i===selected){ m.position.copy(np); m.userData.home=np.clone(); }
+  need();
+}
+$('tSlide').addEventListener('input',e=>{ if(!slideSnap){ snapshot(); slideSnap=true; } moveSelected(+e.target.value); });
+$('tSlide').addEventListener('change',()=>{ slideSnap=false; sfx('place'); rebuildConns(); saveDraft(); });
+function selectPart(i){ selected=i; slideInfo=i>=0?computeSlide(i):null; syncScene(); updateHint(); }
+$('tPick').onclick=()=>{
+  if(selected<0) return;
+  const p=model.parts[selected]; snapshot(); model.parts.splice(selected,1);
+  selected=-1; slideInfo=null; sfx('pick');
+  armed={sid:p.sid,col:p.col,hex:p.hex}; ptIdx=0; hover=null; afterChange();
+};
+$('tCancel').onclick=()=>{ sfx('ui'); if(armed){ disarm(); return; } if(selected>=0) selectPart(-1); };
 canvas.addEventListener('contextmenu',e=>{ if(armed||selected>=0){ e.preventDefault(); $('tCancel').click(); } });
 
 /* ---------- library and BOM ---------- */
@@ -915,7 +1022,7 @@ $('bMore').onclick=()=>{
 };
 $('fileIn').onchange=async e=>{
   const f=e.target.files[0]; if(!f) return;
-  try{ if(f.size>8e6) throw 0; const m=JSON.parse(await f.text()); await loadModel(m,null); toast(t('tOpened',model.name||f.name)); }
+  try{ if(f.size>8e6) throw 0; const m=JSON.parse(await f.text()); await loadModel(m,null); if(!db) await $('bSave').onclick(); toast(t('tOpened',model.name||f.name)); }   // imported files also go into My models
   catch{ toast(t('tBadFile')); }
   e.target.value='';
 };
@@ -960,7 +1067,7 @@ function loop(now){
   if(location.hash==='#instructions') setMode('instr'); else if(location.hash==='#showcase') setMode('view');
   if(window.claude&&claude.use){ claude.use('db').then(d=>{db=d;}).catch(()=>{}); }
 })();
-window.__vx={candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
+window.__vx={select:i=>selectPart(i), slide:()=>slideInfo&&{lo:slideInfo.lo,hi:slideInfo.hi,t:slideInfo.t}, moveSel:v=>{snapshot();moveSelected(v);rebuildConns();}, pickUp:()=>$('tPick').click(), armedNow:()=>armed&&armed.sid, candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
 </script>
 </body>
 </html>
