@@ -129,6 +129,18 @@ main.side-off aside{overflow:hidden;border-right:0}
 .ctx button:hover,.ctx button:focus-visible{background:var(--bg)}
 .ctx button kbd{font:500 11px var(--f-num);color:var(--muted)}
 .ctx button.warn{color:var(--warn)} .ctx hr{border:0;border-top:1px solid var(--line);margin:3px 4px}
+.gpanel{position:absolute;right:76px;top:52px;width:min(270px,calc(100% - 96px));max-height:calc(100% - 140px);overflow:auto;z-index:5;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;box-shadow:0 6px 24px rgba(10,20,40,.14);display:flex;flex-direction:column;gap:8px}
+.gitem{border:1px solid var(--line);border-radius:10px;padding:6px;background:var(--bg)}
+.gitem.on{border-color:var(--accent)}
+.ghead{display:flex;align-items:center;gap:4px}
+.ghead input{flex:1;min-width:0;font:600 13px var(--f-ui);color:var(--ink);background:transparent;border:1px solid transparent;border-radius:6px;padding:4px 6px}
+.ghead input:hover,.ghead input:focus{border-color:var(--line);background:var(--panel)}
+.ghead button{border:0;background:none;cursor:pointer;color:var(--muted);padding:4px;display:grid;font:600 12px var(--f-ui)}
+.ghead svg{width:16px;height:16px}
+.gitems{list-style:none;margin:4px 0 0;padding:0 0 0 22px;font-size:12px;display:flex;flex-direction:column;gap:2px}
+.gitems li{display:flex;gap:6px;align-items:center}
+.gitems img{width:20px;height:20px;object-fit:contain;background:var(--thumb);border-radius:4px}
+.selbox{position:absolute;z-index:7;border:1.5px dashed var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);pointer-events:none}
 .mlabel{position:absolute;z-index:5;pointer-events:none;transform:translate(-50%,-140%);background:var(--sun);color:#1a1a1a;font:600 12.5px var(--f-num);padding:4px 8px;border-radius:7px;white-space:nowrap}
 .libtop{display:flex;flex-direction:column;gap:6px;padding:10px 12px 0}
 .libtop input{font:500 13px var(--f-ui);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%;box-sizing:border-box}
@@ -259,6 +271,7 @@ main.side-off aside{overflow:hidden;border-right:0}
         <button class="btn" id="tPt"><span data-i18n="changeHole"></span><kbd>T</kbd></button>
         <button class="btn" id="tDepth" hidden><span data-i18n="depth"></span> <b id="tDepthN"></b><kbd>D</kbd></button>
         <button class="btn" id="tTilt"><span data-i18n="tilt"></span><kbd>F</kbd></button>
+        <button class="btn" id="tTilt2"><span data-i18n="tilt2"></span><kbd>V</kbd></button>
         <button class="btn primary" id="tPlace" data-i18n="place"></button>
         <button class="btn" id="tUndo">Undo</button>
         <button class="btn" id="tRedo">Redo</button>
@@ -280,9 +293,12 @@ main.side-off aside{overflow:hidden;border-right:0}
       <div class="vbar" id="vbar" role="toolbar">
         <button id="vFit" data-vt="fit"></button><button id="vFront" data-vt="front"></button><button id="vTop" data-vt="top"></button><button id="vSide" data-vt="side"></button><button id="vIso" data-vt="iso"></button>
         <hr><button id="vX" data-vt="xray" aria-pressed="false"></button><button id="vSec" data-vt="section" aria-pressed="false"></button><button id="vMeas" data-vt="measure" aria-pressed="false"></button>
+        <hr><button id="vGrp" data-vt="groups" aria-pressed="false"></button><button id="vCloud" data-vt="cloud"></button>
       </div>
       <div class="vpop" id="secPop" hidden style="top:250px"><span data-i18n="section"></span><div class="seg" role="group"><button data-ax="0" aria-pressed="false">X</button><button data-ax="1" aria-pressed="true">Y</button><button data-ax="2" aria-pressed="false">Z</button></div><input type="range" id="secR" min="0" max="1" step="0.002" value="0.5" data-i18n-aria="section"><button class="btn" id="secFlip" data-i18n="flip"></button></div>
       <div class="mlabel" id="mlabel" hidden></div>
+      <div class="gpanel" id="gpanel" hidden><div class="ohead"><h3 data-i18n="groups" style="margin:0;flex:1"></h3><button class="btn" id="gClose" data-i18n="close"></button></div><div id="glist"></div></div>
+      <div class="selbox" id="selbox" hidden></div>
       <div class="ctx" id="ctx" hidden role="menu"></div>
       <div class="gallery" id="gallery" hidden>
         <img id="gImg" alt="">
@@ -315,7 +331,7 @@ th:{
   bomTitle:'ชิ้นที่ใช้ เทียบกับในกล่อง',bomEmpty:'ยังไม่มีชิ้น',
   refLink:'เปิดคู่มือจริงของ VEX',stepPartsTitle:'ชิ้นที่ใช้ใน Step นี้',noPartsModel:'โมเดลนี้ยังไม่มีชิ้น',
   canvas:'พื้นที่แสดงโมเดล 3 มิติ',
-  rotate:'หมุน',changeHole:'เปลี่ยนจุดต่อ',tilt:'ตั้งชิ้น',place:'วาง',delPart:'ลบชิ้นนี้',newStep:'Step ใหม่',
+  rotate:'หมุนรอบรู',changeHole:'เปลี่ยนจุดต่อ',tilt:'พลิก',tilt2:'พลิกอีกแกน',place:'วาง',delPart:'ลบชิ้นนี้',newStep:'Step ใหม่',
   prev:'ก่อนหน้า',next:'ถัดไป',chooseStep:'เลือก Step',loading:'กำลังโหลดชิ้นส่วน',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pin และ Connector',tab_motion:'Gear Wheel Shaft',tab_other:'อื่นๆ',tab_elec:'Electronics',
   iqName:'ชื่อใน VEX IQ Legal Parts',
@@ -326,7 +342,7 @@ th:{
   hConn:'{0} รู {1} จาก {2} เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง',hPin:'{0} ปลาย {1}/{2} เสียบลึก {3}/{4} ช่อง กด T สลับปลาย กด D หรือเลื่อนลูกกลิ้งเปลี่ยนความลึก',hLockShort:'(ล็อกรูไว้)',depth:'ลึก',hLock:'ล็อกรูนี้ไว้ เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง ปล่อย T เพื่อปลดล็อก',hConnTouch:'{0} รู {1} จาก {2} แตะซ้ำหรือกด วาง',
   hGround:'{0} วางบนพื้น แตะซ้ำหรือกด วาง',
   tStepEmpty:'Step {0} ยังไม่มีชิ้น วางชิ้นก่อนแล้วค่อยขึ้น Step ใหม่',tStepStart:'เริ่ม Step {0}',
-  tSavedLocal:'บันทึก {0} ไว้ในเครื่องนี้แล้ว เปิดดูได้ที่ เปิดโมเดล',tQuotaLocal:'พื้นที่ในเครื่องเต็ม ลบโมเดลเก่าที่ เปิดโมเดล ก่อน',putBack:'วางคืน',libView:'คลังชิ้นส่วน',treeView:'ชิ้นในโมเดล',searchPh:'ค้นหาชิ้น เช่น gear, 1x4, pin',noMatch:'ไม่พบชิ้นที่ค้นหา',fit:'พอดี',front:'หน้า',top:'บน',side:'ข้าง',iso:'เฉียง',xray:'โปร่ง',section:'ตัด',measure:'วัด',flip:'กลับด้าน',vt_fit:'ซูมให้เห็นทั้งโมเดล (F)',vt_front:'มองจากด้านหน้า (1)',vt_top:'มองจากด้านบน (2)',vt_side:'มองจากด้านข้าง (3)',vt_iso:'มุมเฉียง (4)',vt_xray:'มองทะลุ (X)',vt_section:'ตัดผ่าดูข้างใน',vt_measure:'วัดระยะ (M)',explode:'แยกชิ้น',showAll:'แสดงทั้งหมด ({0} ซ่อนอยู่)',cTake:'ถอดออก',cCopy:'คัดลอก',cDup:'ทำซ้ำ',cMirror:'สะท้อนซ้าย-ขวา',cGroup:'รวมกลุ่ม',cUngroup:'แยกกลุ่ม',cHide:'ซ่อน',cIsolate:'ดูเฉพาะที่เลือก',cShowAll:'แสดงทั้งหมด',cDel:'ลบ',cPaste:'วาง',tCopiedN:'คัดลอก {0} ชิ้นแล้ว กด Ctrl+V เพื่อวาง',tMirrored:'สะท้อนไปอีกข้างแล้ว {0} ชิ้น',tMirrorNone:'อีกข้างมีชิ้นเหล่านี้อยู่แล้ว',tNoRedo:'ไม่มีอะไรให้ทำซ้ำ',hCollide:'ระวัง ชิ้นนี้ชนกับชิ้นที่วางอยู่แล้ว',hMeasure:'คลิกสองจุดเพื่อวัดระยะ กด Esc เพื่อออก',measureVal:'{0} mm ({1} ช่อง)',png:'บันทึกภาพ PNG',csv:'รายการชิ้น CSV',keysTitle:'คีย์ลัด',groupTag:'กลุ่ม',k_rot:'หมุนชิ้นในมือ',k_hole:'เปลี่ยนรู (กดค้าง ล็อกรู)',k_depth:'ความลึกของ Pin หรือ Shaft',k_tilt:'ตั้งชิ้น',k_place:'วางชิ้น',k_esc:'วางคืน ยกเลิก ปิดหน้าต่าง',k_undo:'Undo',k_redo:'Redo',k_copy:'คัดลอก วาง ทำซ้ำ',k_mirror:'สะท้อนซ้าย-ขวา',k_group:'รวมกลุ่ม แยกกลุ่ม',k_hide:'ซ่อน ดูเฉพาะที่เลือก แสดงทั้งหมด',k_del:'ลบชิ้นที่เลือก',k_multi:'เลือกหลายชิ้น',k_fit:'ซูมพอดีจอ (ตอนไม่ได้ถือชิ้น)',k_views:'มุมมอง หน้า บน ข้าง เฉียง',k_x:'มองทะลุ',k_m:'วัดระยะ',k_wheel:'ลูกกลิ้งบนรู เปลี่ยนรูหรือความลึก',k_arrows:'เลื่อนชิ้นบนแกน หรือเปลี่ยน Step',k_right:'คลิกขวา เมนูคำสั่ง (แตะค้างบนจอสัมผัส)',group:'รวมกลุ่ม',ungroup:'แยกกลุ่ม',multi:'เลือกหลายชิ้น',groupOf:'กลุ่ม {0} ชิ้น',hMulti:'เลือกอยู่ {0} ชิ้น กด รวมกลุ่ม เพื่อให้ย้ายด้วยกัน หรือ ถอดออก เพื่อยกทั้งหมด',tGrouped:'รวม {0} ชิ้นเป็นกลุ่มแล้ว แตะชิ้นไหนก็เลือกทั้งกลุ่ม',tUngrouped:'แยกกลุ่มแล้ว',fullscreen:'เต็มจอ',exitFull:'ออกจากเต็มจอ',resizeHint:'ลากเพื่อปรับขนาด ดับเบิลคลิกเพื่อย่อหรือขยาย',viewParts:'ชิ้นในโมเดลนี้',viewHint:'แตะชิ้นส่วนเพื่อดูชื่อ ลากเพื่อหมุนดูรอบๆ',galleryHint:'ปัดซ้ายขวาเพื่อดูรอบตัวหุ่น',angleOf:'เลือกมุมมอง',making:'กำลังสร้างภาพ 10 มุม',deselect:'ยกเลิกเลือก',sound:'เสียง',examples:'โมเดลตัวอย่าง',mine:'โมเดลของฉัน',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
+  tSavedLocal:'บันทึก {0} ไว้ในเครื่องนี้แล้ว เปิดดูได้ที่ เปิดโมเดล',tQuotaLocal:'พื้นที่ในเครื่องเต็ม ลบโมเดลเก่าที่ เปิดโมเดล ก่อน',putBack:'วางคืน',groups:'กลุ่ม',cloud:'คลาวด์',vt_groups:'รายการกลุ่ม',vt_cloud:'บันทึกขึ้นคลาวด์',groupName:'กลุ่ม {0}',gEmpty:'ยังไม่มีกลุ่ม เลือกหลายชิ้นแล้วกด รวมกลุ่ม',gSelect:'เลือกทั้งกลุ่ม',cloudTitle:'คลาวด์',spaceLbl:'รหัสห้อง',spaceHint:'ทุกเครื่องที่ใช้รหัสห้องเดียวกันเห็นโมเดลชุดเดียวกัน',useSpace:'ใช้รหัสนี้',tCloudSaved:'บันทึก {0} ขึ้นคลาวด์แล้ว',tCloudOff:'คลาวด์ยังไม่พร้อม บันทึกไว้ในเครื่องแล้ว',tCloudErr:'เชื่อมต่อคลาวด์ไม่ได้ บันทึกไว้ในเครื่องแล้ว',tNotOwner:'โมเดลนี้เป็นของเครื่องอื่น จึงลบไม่ได้',cloudEmpty:'ห้องนี้ยังไม่มีโมเดล',saveCloud:'บันทึกขึ้นคลาวด์',libView:'คลังชิ้นส่วน',treeView:'ชิ้นในโมเดล',searchPh:'ค้นหาชิ้น เช่น gear, 1x4, pin',noMatch:'ไม่พบชิ้นที่ค้นหา',fit:'พอดี',front:'หน้า',top:'บน',side:'ข้าง',iso:'เฉียง',xray:'โปร่ง',section:'ตัด',measure:'วัด',flip:'กลับด้าน',vt_fit:'ซูมให้เห็นทั้งโมเดล (F)',vt_front:'มองจากด้านหน้า (1)',vt_top:'มองจากด้านบน (2)',vt_side:'มองจากด้านข้าง (3)',vt_iso:'มุมเฉียง (4)',vt_xray:'มองทะลุ (X)',vt_section:'ตัดผ่าดูข้างใน',vt_measure:'วัดระยะ (M)',explode:'แยกชิ้น',showAll:'แสดงทั้งหมด ({0} ซ่อนอยู่)',cTake:'ถอดออก',cCopy:'คัดลอก',cDup:'ทำซ้ำ',cMirror:'สะท้อนซ้าย-ขวา',cGroup:'รวมกลุ่ม',cUngroup:'แยกกลุ่ม',cHide:'ซ่อน',cIsolate:'ดูเฉพาะที่เลือก',cShowAll:'แสดงทั้งหมด',cDel:'ลบ',cPaste:'วาง',tCopiedN:'คัดลอก {0} ชิ้นแล้ว กด Ctrl+V เพื่อวาง',tMirrored:'สะท้อนไปอีกข้างแล้ว {0} ชิ้น',tMirrorNone:'อีกข้างมีชิ้นเหล่านี้อยู่แล้ว',tNoRedo:'ไม่มีอะไรให้ทำซ้ำ',hCollide:'ระวัง ชิ้นนี้ชนกับชิ้นที่วางอยู่แล้ว',hMeasure:'คลิกสองจุดเพื่อวัดระยะ กด Esc เพื่อออก',measureVal:'{0} mm ({1} ช่อง)',png:'บันทึกภาพ PNG',csv:'รายการชิ้น CSV',keysTitle:'คีย์ลัด',groupTag:'กลุ่ม',k_rot:'หมุนชิ้นในมือ',k_hole:'เปลี่ยนรู (กดค้าง ล็อกรู)',k_depth:'ความลึกของ Pin หรือ Shaft',k_tilt:'ตั้งชิ้น',k_place:'วางชิ้น',k_esc:'วางคืน ยกเลิก ปิดหน้าต่าง',k_undo:'Undo',k_redo:'Redo',k_copy:'คัดลอก วาง ทำซ้ำ',k_mirror:'สะท้อนซ้าย-ขวา',k_group:'รวมกลุ่ม แยกกลุ่ม',k_hide:'ซ่อน ดูเฉพาะที่เลือก แสดงทั้งหมด',k_del:'ลบชิ้นที่เลือก',k_multi:'เลือกหลายชิ้น',k_fit:'ซูมพอดีจอ (ตอนไม่ได้ถือชิ้น)',k_views:'มุมมอง หน้า บน ข้าง เฉียง',k_x:'มองทะลุ',k_m:'วัดระยะ',k_wheel:'ลูกกลิ้งบนรู เปลี่ยนรูหรือความลึก',k_arrows:'เลื่อนชิ้นบนแกน หรือเปลี่ยน Step',k_right:'คลิกขวา เมนูคำสั่ง (แตะค้างบนจอสัมผัส)',group:'รวมกลุ่ม',ungroup:'แยกกลุ่ม',multi:'เลือกหลายชิ้น',groupOf:'กลุ่ม {0} ชิ้น',hMulti:'เลือกอยู่ {0} ชิ้น กด รวมกลุ่ม เพื่อให้ย้ายด้วยกัน หรือ ถอดออก เพื่อยกทั้งหมด',tGrouped:'รวม {0} ชิ้นเป็นกลุ่มแล้ว แตะชิ้นไหนก็เลือกทั้งกลุ่ม',tUngrouped:'แยกกลุ่มแล้ว',fullscreen:'เต็มจอ',exitFull:'ออกจากเต็มจอ',resizeHint:'ลากเพื่อปรับขนาด ดับเบิลคลิกเพื่อย่อหรือขยาย',viewParts:'ชิ้นในโมเดลนี้',viewHint:'แตะชิ้นส่วนเพื่อดูชื่อ ลากเพื่อหมุนดูรอบๆ',galleryHint:'ปัดซ้ายขวาเพื่อดูรอบตัวหุ่น',angleOf:'เลือกมุมมอง',making:'กำลังสร้างภาพ 10 มุม',deselect:'ยกเลิกเลือก',sound:'เสียง',examples:'โมเดลตัวอย่าง',mine:'โมเดลของฉัน',tSavedDb:'บันทึก {0} แล้ว ทุกคนที่เปิดลิงก์นี้เห็นโมเดลนี้',
   tQuota:'พื้นที่เก็บเต็ม ลบโมเดลเก่าก่อน',tSaveFail:'บันทึกไม่ได้ สิทธิ์นี้ดูได้อย่างเดียว ใช้ ไฟล์ แทน',
   openTitle:'เปิดโมเดล',loadingShort:'กำลังโหลด',startNew:'เริ่มโมเดลใหม่',close:'ปิด',openBtn:'เปิด',del:'ลบ',delConfirm:'ยืนยันลบ',
   noSaved:'ยังไม่มีโมเดลที่บันทึกไว้ ประกอบแล้วกด บันทึก',meta:'{0} ชิ้น, {1}',example:'โมเดลตัวอย่าง',
@@ -341,7 +357,7 @@ en:{
   bomTitle:'Used vs. in the kit',bomEmpty:'No parts yet',
   refLink:'Open the official VEX instructions',stepPartsTitle:'Parts in this step',noPartsModel:'This model has no parts yet',
   canvas:'3D model view',
-  rotate:'Rotate',changeHole:'Change hole',tilt:'Tilt',place:'Place',delPart:'Delete part',newStep:'New step',
+  rotate:'Turn on hole',changeHole:'Change hole',tilt:'Flip',tilt2:'Flip other axis',place:'Place',delPart:'Delete part',newStep:'New step',
   prev:'Back',next:'Next',chooseStep:'Choose step',loading:'Loading parts',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pins and Connectors',tab_motion:'Gears, Wheels, Shafts',tab_other:'Other',tab_elec:'Electronics',
   iqName:'Name in VEX IQ Legal Parts',
@@ -352,7 +368,7 @@ en:{
   hConn:'{0} hole {1} of {2}. Scroll or press T to change hole, click to place',hPin:'{0} end {1}/{2}, depth {3}/{4}. T flips the end, D or scroll changes the depth',hLockShort:'(hole locked)',depth:'Depth',hLock:'Hole locked. Scroll or press T to change hole, click to place. Release T to unlock',hConnTouch:'{0} hole {1} of {2}. Tap again or press Place',
   hGround:'{0} on the floor. Tap again or press Place',
   tStepEmpty:'Step {0} has no parts yet. Place a part before starting a new step',tStepStart:'Started step {0}',
-  tSavedLocal:'Saved {0} on this device. Find it in Open',tQuotaLocal:'Device storage is full. Delete an old model in Open first',putBack:'Put back',libView:'Library',treeView:'In model',searchPh:'Search parts, e.g. gear, 1x4, pin',noMatch:'No parts match',fit:'Fit',front:'Front',top:'Top',side:'Side',iso:'Iso',xray:'X-ray',section:'Section',measure:'Measure',flip:'Flip',vt_fit:'Zoom to the whole model (F)',vt_front:'Front view (1)',vt_top:'Top view (2)',vt_side:'Side view (3)',vt_iso:'Iso view (4)',vt_xray:'See through (X)',vt_section:'Cut the model open',vt_measure:'Measure (M)',explode:'Explode',showAll:'Show all ({0} hidden)',cTake:'Take off',cCopy:'Copy',cDup:'Duplicate',cMirror:'Mirror left-right',cGroup:'Group',cUngroup:'Ungroup',cHide:'Hide',cIsolate:'Show only selected',cShowAll:'Show all',cDel:'Delete',cPaste:'Paste',tCopiedN:'Copied {0} parts. Press Ctrl+V to paste',tMirrored:'Mirrored {0} parts to the other side',tMirrorNone:'The other side already has these parts',tNoRedo:'Nothing to redo',hCollide:'Careful, this overlaps a placed part',hMeasure:'Click two points to measure. Press Esc to stop',measureVal:'{0} mm ({1} holes)',png:'Save PNG image',csv:'Parts list CSV',keysTitle:'Keyboard shortcuts',groupTag:'group',k_rot:'Rotate the part in hand',k_hole:'Change hole (hold to lock)',k_depth:'Pin or shaft depth',k_tilt:'Tilt',k_place:'Place',k_esc:'Put back, cancel, close',k_undo:'Undo',k_redo:'Redo',k_copy:'Copy, paste, duplicate',k_mirror:'Mirror left-right',k_group:'Group, ungroup',k_hide:'Hide, show only selected, show all',k_del:'Delete selected',k_multi:'Select many',k_fit:'Fit to screen (when not holding a part)',k_views:'Front, top, side, iso views',k_x:'See through',k_m:'Measure',k_wheel:'Wheel over a hole changes hole or depth',k_arrows:'Slide on shaft, or change step',k_right:'Right-click for commands (long-press on touch)',group:'Group',ungroup:'Ungroup',multi:'Select many',groupOf:'Group of {0} parts',hMulti:'{0} parts selected. Press Group to keep them together, or Take off to lift them all',tGrouped:'Grouped {0} parts. Tap any of them to select the whole group',tUngrouped:'Ungrouped',fullscreen:'Full screen',exitFull:'Exit full screen',resizeHint:'Drag to resize, double-click to collapse or restore',viewParts:'Parts in this model',viewHint:'Tap a part to see its name. Drag to turn the model',galleryHint:'Swipe left or right to look around the robot',angleOf:'Choose a view',making:'Making 10 pictures',deselect:'Deselect',sound:'Sound',examples:'Example models',mine:'My models',tSavedDb:'Saved {0}. Everyone with this link can see it',
+  tSavedLocal:'Saved {0} on this device. Find it in Open',tQuotaLocal:'Device storage is full. Delete an old model in Open first',putBack:'Put back',groups:'Groups',cloud:'Cloud',vt_groups:'Group list',vt_cloud:'Save to the cloud',groupName:'Group {0}',gEmpty:'No groups yet. Select several parts and press Group',gSelect:'Select group',cloudTitle:'Cloud',spaceLbl:'Room code',spaceHint:'Every device using the same room code sees the same models',useSpace:'Use this code',tCloudSaved:'Saved {0} to the cloud',tCloudOff:'The cloud is not ready yet. Saved on this device',tCloudErr:'Could not reach the cloud. Saved on this device',tNotOwner:'This model belongs to another device, so it cannot be deleted',cloudEmpty:'No models in this room yet',saveCloud:'Save to the cloud',libView:'Library',treeView:'In model',searchPh:'Search parts, e.g. gear, 1x4, pin',noMatch:'No parts match',fit:'Fit',front:'Front',top:'Top',side:'Side',iso:'Iso',xray:'X-ray',section:'Section',measure:'Measure',flip:'Flip',vt_fit:'Zoom to the whole model (F)',vt_front:'Front view (1)',vt_top:'Top view (2)',vt_side:'Side view (3)',vt_iso:'Iso view (4)',vt_xray:'See through (X)',vt_section:'Cut the model open',vt_measure:'Measure (M)',explode:'Explode',showAll:'Show all ({0} hidden)',cTake:'Take off',cCopy:'Copy',cDup:'Duplicate',cMirror:'Mirror left-right',cGroup:'Group',cUngroup:'Ungroup',cHide:'Hide',cIsolate:'Show only selected',cShowAll:'Show all',cDel:'Delete',cPaste:'Paste',tCopiedN:'Copied {0} parts. Press Ctrl+V to paste',tMirrored:'Mirrored {0} parts to the other side',tMirrorNone:'The other side already has these parts',tNoRedo:'Nothing to redo',hCollide:'Careful, this overlaps a placed part',hMeasure:'Click two points to measure. Press Esc to stop',measureVal:'{0} mm ({1} holes)',png:'Save PNG image',csv:'Parts list CSV',keysTitle:'Keyboard shortcuts',groupTag:'group',k_rot:'Rotate the part in hand',k_hole:'Change hole (hold to lock)',k_depth:'Pin or shaft depth',k_tilt:'Tilt',k_place:'Place',k_esc:'Put back, cancel, close',k_undo:'Undo',k_redo:'Redo',k_copy:'Copy, paste, duplicate',k_mirror:'Mirror left-right',k_group:'Group, ungroup',k_hide:'Hide, show only selected, show all',k_del:'Delete selected',k_multi:'Select many',k_fit:'Fit to screen (when not holding a part)',k_views:'Front, top, side, iso views',k_x:'See through',k_m:'Measure',k_wheel:'Wheel over a hole changes hole or depth',k_arrows:'Slide on shaft, or change step',k_right:'Right-click for commands (long-press on touch)',group:'Group',ungroup:'Ungroup',multi:'Select many',groupOf:'Group of {0} parts',hMulti:'{0} parts selected. Press Group to keep them together, or Take off to lift them all',tGrouped:'Grouped {0} parts. Tap any of them to select the whole group',tUngrouped:'Ungrouped',fullscreen:'Full screen',exitFull:'Exit full screen',resizeHint:'Drag to resize, double-click to collapse or restore',viewParts:'Parts in this model',viewHint:'Tap a part to see its name. Drag to turn the model',galleryHint:'Swipe left or right to look around the robot',angleOf:'Choose a view',making:'Making 10 pictures',deselect:'Deselect',sound:'Sound',examples:'Example models',mine:'My models',tSavedDb:'Saved {0}. Everyone with this link can see it',
   tQuota:'Storage is full. Delete an old model first',tSaveFail:'Could not save. You have view only access. Use File instead',
   openTitle:'Open model',loadingShort:'Loading',startNew:'Start a new model',close:'Close',openBtn:'Open',del:'Delete',delConfirm:'Confirm delete',
   noSaved:'No saved models yet. Build one and press Save',meta:'{0} parts, {1}',example:'example model',
@@ -378,6 +394,7 @@ const MAX_PARTS=3000;
 /* ---------- model state ---------- */
 let model={name:'',parts:[],step:1,ref:null};
 let undoStack=[];
+let tilt2=0;
 let mode='build', armed=null, spin=0, ptIdx=0, tilt=0, hover=null, selected=-1, modelId=null;
 let edited=false, srcFile=null;   // edited: user changed the model; srcFile: built-in file it came from
 const TILTS=[new THREE.Quaternion(),new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2),new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.PI/2)];
@@ -505,12 +522,18 @@ function snapPose(target,j,s){
   const c=armedConns()[j], nB=V(c.n), pB=V(c.p);
   const q1=new THREE.Quaternion().setFromUnitVectors(nB,target.n.clone().negate());
   const qs=new THREE.Quaternion().setFromAxisAngle(target.n,s*Math.PI/2);
-  const q=qs.multiply(q1);
-  const pos=target.p.clone().sub(pB.applyQuaternion(q));
+  let q=qs.multiply(q1);
+  let pos=target.p.clone().sub(pB.applyQuaternion(q));
+  if(tilt%4||tilt2%4){   // flip around two axes lying in the hole face, pivot = hole centre
+    const n=target.n, ref=Math.abs(n.z)<.9?new THREE.Vector3(0,0,1):new THREE.Vector3(1,0,0);
+    const u=ref.clone().cross(n).normalize(), v=n.clone().cross(u).normalize();
+    const R=new THREE.Quaternion().setFromAxisAngle(v,(tilt2%4)*Math.PI/2).multiply(new THREE.Quaternion().setFromAxisAngle(u,(tilt%4)*Math.PI/2));
+    q=R.clone().multiply(q); pos=pos.sub(target.p).applyQuaternion(R).add(target.p);
+  }
   return {q,pos,dir:target.n.clone()};
 }
 function groundPose(pt){
-  const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),spin*Math.PI/2).multiply(TILTS[tilt]);
+  const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),spin*Math.PI/2).multiply(TILTS[tilt%3]);
   const b=armed.group?armed.bounds:PART[armed.sid].bounds; let minz=1e9;
   for(const x of [b[0][0],b[1][0]]) for(const y of [b[0][1],b[1][1]]) for(const z of [b[0][2],b[1][2]]) minz=Math.min(minz,new THREE.Vector3(x,y,z).applyQuaternion(q).z);
   const g=6.35, pos=new THREE.Vector3(Math.round(pt.x/g)*g,Math.round(pt.y/g)*g,-minz);
@@ -542,7 +565,8 @@ const dotGeo=new THREE.SphereGeometry(1.4,12,8);
 const dotMatF=new THREE.MeshBasicMaterial({color:0xffffff,depthTest:true});
 const dotMatM=new THREE.MeshBasicMaterial({color:0xf4c21b});
 let dotsF=null,dotsM=null, cand=[];
-const hl=new THREE.Mesh(new THREE.TorusGeometry(4.2,.9,10,28),new THREE.MeshBasicMaterial({color:0x1f5fd1,depthTest:false,transparent:true}));
+const hl=new THREE.Mesh(new THREE.TorusGeometry(4.2,.9,10,28),new THREE.MeshBasicMaterial({color:0x2f8cff,depthTest:false,transparent:true}));
+const hlGlow=new THREE.Mesh(new THREE.CircleGeometry(3.6,24),new THREE.MeshBasicMaterial({color:0xffe066,depthTest:false,transparent:true,opacity:.6})); hlGlow.renderOrder=11; hl.add(hlGlow);
 hl.renderOrder=10; hl.visible=false; scene.add(hl);
 function rebuildDots(){
   for(const d of [dotsF,dotsM]) if(d){scene.remove(d); d.dispose();}
@@ -671,12 +695,13 @@ function place(){
   model.parts.push({sid:armed.sid,col:armed.col,hex:armed.hex,p:r(pose.pos.toArray()),q:r(pose.q.toArray()),dir:r(pose.dir.toArray()),step:model.step});
   hover=null; afterChange();
 }
-async function afterChange(){ rebuildConns(); await syncScene(); rebuildDots(); updateGhost(); renderBOM(); renderLib(); saveDraft(); if(treeOn) renderTree(); refreshShowAll(); }
+async function afterChange(){ rebuildConns(); await syncScene(); rebuildDots(); updateGhost(); renderBOM(); renderLib(); saveDraft(); if(treeOn) renderTree(); refreshShowAll(); renderGroups(); }
 $('tPlace').onclick=place;
 $('tRot').onclick=()=>{spin=(spin+1)%4; updateGhost();};
 $('tPt').onclick=()=>{ptIdx++; depIdx=0; updateGhost();};
 $('tDepth').onclick=()=>{depIdx++; sfx('ui'); updateGhost();};
-$('tTilt').onclick=()=>{tilt=(tilt+1)%3; updateGhost();};
+$('tTilt').onclick=()=>{tilt=(tilt+1)%4; sfx('ui'); updateGhost();};
+$('tTilt2').onclick=()=>{tilt2=(tilt2+1)%4; sfx('ui'); updateGhost();};
 let redoStack=[];
 function restore(json){ model=JSON.parse(json); selected=-1; selSet=new Set(); armed=null; slideInfo=null; renderLib(); rebuildDots(); $('tDel').hidden=true; $('mname').value=displayName(model.name); $('curStep').textContent=model.step; afterChange(); refreshShowAll(); }
 $('tUndo').onclick=()=>{ if(!undoStack.length){ sfx('err'); return; } sfx('undo'); redoStack.push(JSON.stringify(model)); restore(undoStack.pop()); };
@@ -710,6 +735,7 @@ addEventListener('keydown',e=>{
   if(c==='KeyG'&&mode==='build'&&!armed){ e.preventDefault(); if(e.shiftKey){ if(!$('tUngroup').hidden) $('tUngroup').click(); } else if(!$('tGroup').hidden) $('tGroup').click(); return; }
   if(c==='KeyD'){ if(armed&&mode==='build'&&!$('tDepth').hidden){ e.preventDefault(); $('tDepth').click(); } return; }
   if(c==='KeyF'){ if(armed&&mode==='build') $('tTilt').click(); else viewTo('fit'); return; }
+  if(c==='KeyV'){ if(armed&&mode==='build') $('tTilt2').click(); return; }
   if(/^Digit[1-4]$/.test(c)&&!armed){ viewTo(['front','top','side','iso'][+c[5]-1]); return; }
   if(c==='KeyX'){ setXray(!xray); return; }
   if(c==='KeyM'){ if(e.shiftKey){ if(mode==='build') mirrorSel(); } else setMeasure(!measureOn); return; }
@@ -767,7 +793,7 @@ $('bSnd').onclick=()=>{ sndOn=!sndOn; try{localStorage.setItem('vexgo-sound',snd
 /* tools shown depend on what the user is doing: holding a part, a part selected, or nothing */
 function refreshTools(){
   const holding=!!armed&&mode==='build', sel=selected>=0;
-  for(const id of ['tRot','tPt','tTilt','tPlace']) $(id).hidden=!holding;
+  for(const id of ['tRot','tPt','tTilt','tTilt2','tPlace']) $(id).hidden=!holding;
   const ch=holding&&hover&&hover.type==='conn'?chosenOption(hover.c):null;
   $('tDepth').hidden=!(ch&&ch.deps>1); if(ch&&ch.deps>1) $('tDepthN').textContent=(ch.dep+1)+'/'+ch.deps;
   $('tDel').hidden=!sel; $('tCancel').hidden=!(holding||sel); $('tPick').hidden=!sel||holding;
@@ -855,8 +881,8 @@ function selectPart(i,add){
   slideInfo=(selected>=0&&selSet.size===1)?computeSlide(selected):null; syncScene(); updateHint(); if(treeOn) renderTree();
 }
 $('tMulti').onclick=()=>{ multiOn=!multiOn; sfx('ui'); refreshTools(); };
-$('tGroup').onclick=()=>{ if(selSet.size<2) return; snapshot(); const g=newGid(); for(const i of selSet) model.parts[i].g=g; sfx('step'); toast(t('tGrouped',selSet.size)); saveDraft(); refreshTools(); };
-$('tUngroup').onclick=()=>{ snapshot(); for(const i of selSet) delete model.parts[i].g; sfx('ui'); toast(t('tUngrouped')); saveDraft(); refreshTools(); };
+$('tGroup').onclick=()=>{ if(selSet.size<2) return; snapshot(); const g=newGid(); for(const i of selSet) model.parts[i].g=g; (model.groups=model.groups||{})[g]=t('groupName',Object.keys(model.groups).length+1); renderGroups(); sfx('step'); toast(t('tGrouped',selSet.size)); saveDraft(); refreshTools(); };
+$('tUngroup').onclick=()=>{ snapshot(); for(const i of selSet) delete model.parts[i].g; renderGroups(); sfx('ui'); toast(t('tUngrouped')); saveDraft(); refreshTools(); };
 /* pick up the whole selection: positions and free connectors are stored relative to the clicked part */
 function makeGroup(idx,primary){
   idx=[...idx].sort((a,b)=>a-b); const A=model.parts[primary];
@@ -1039,7 +1065,7 @@ $('mBuild').onclick=()=>{sfx('ui'); setMode('build');}; $('mInstr').onclick=()=>
 /* ---------- storage and model validation ---------- */
 function saveDraft(){
   try{
-    if(edited) localStorage.setItem('vexgo-draft',JSON.stringify({edited:true,modelId,model:{name:model.name,ref:model.ref,step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step,g})=>({sid,col,p,q,dir,step,...(g?{g}:{})}))}}));
+    if(edited) localStorage.setItem('vexgo-draft',JSON.stringify({edited:true,modelId,model:{name:model.name,ref:model.ref,step:model.step,groups:model.groups,parts:model.parts.map(({sid,col,p,q,dir,step,g})=>({sid,col,p,q,dir,step,...(g?{g}:{})}))}}));
     else if(srcFile) localStorage.setItem('vexgo-draft',JSON.stringify({edited:false,src:srcFile}));   // unedited built-in: remember which, never a stale copy
   }catch{}
 }
@@ -1059,12 +1085,14 @@ function cleanModel(m){
   }
   let ref=null; try{ const u=new URL(String(m.ref||'')); if(u.protocol==='https:') ref=u.href; }catch{}   // never let a shared file inject a javascript: link
   const maxStep=Math.max(1,...parts.map(p=>p.step));
-  return {name:String(m.name||'').slice(0,80),parts,step:Math.max(maxStep,Math.min(999,Math.floor(Number(m.step))||1)),ref};
+  const groups={}; const used=new Set(parts.map(p=>p.g).filter(Boolean));
+  if(m.groups&&typeof m.groups==='object') for(const [k,v] of Object.entries(m.groups)) if(used.has(k)&&typeof v==='string') groups[k]=v.slice(0,40);
+  return {name:String(m.name||'').slice(0,80),parts,groups,step:Math.max(maxStep,Math.min(999,Math.floor(Number(m.step))||1)),ref};
 }
 const displayName=n=>isDefaultName(n)?t('newModel'):n;
 let db=null;
 async function loadModel(m,id,src){
-  const c=cleanModel(m);
+  const c=cleanModel(m); cloudId=null;
   model=c; if(isDefaultName(model.name)) model.name=t('newModel');
   $('refLink').hidden=!model.ref; if(model.ref) $('refLink').href=model.ref;
   modelId=id||null; srcFile=src||null; edited=!src&&!!(c.parts.length); undoStack=[]; selected=-1; hover=null;
@@ -1098,9 +1126,9 @@ function snapThumb(){
 const LOCAL_KEY='vexgo-models';
 function localList(){ try{ const a=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); return Array.isArray(a)?a:[]; }catch{ return []; } }
 function localWrite(a){ localStorage.setItem(LOCAL_KEY,JSON.stringify(a)); }
-$('bSave').onclick=async()=>{
+$('bSave').onclick=async function(){
   model.name=$('mname').value.trim()||t('modelDefault'); edited=true;
-  const body={name:model.name,ref:model.ref||null,parts:model.parts.map(({sid,col,p,q,dir,step,g})=>({sid,col,p,q,dir,step,...(g?{g}:{})})),step:model.step,updated:Date.now(),count:model.parts.length,thumb:snapThumb()};
+  const body={name:model.name,ref:model.ref||null,groups:model.groups||{},parts:model.parts.map(({sid,col,p,q,dir,step,g})=>({sid,col,p,q,dir,step,...(g?{g}:{})})),step:model.step,updated:Date.now(),count:model.parts.length,thumb:snapThumb()};
   if(!db){
     const list=localList(); let id=modelId&&String(modelId).startsWith('l')?modelId:null;
     if(!id) id='l'+Date.now();
@@ -1108,6 +1136,7 @@ $('bSave').onclick=async()=>{
     if(i>=0) list[i]=rec; else list.unshift(rec);
     try{ localWrite(list.slice(0,40)); modelId=id; saveDraft(); sfx('step'); toast(t('tSavedLocal',model.name)); }
     catch{ sfx('err'); toast(t('tQuotaLocal')); }
+    if((arguments[0]&&arguments[0].cloud)||cloudId) await saveCloud(body);
     return;
   }
   try{
@@ -1118,7 +1147,7 @@ $('bSave').onclick=async()=>{
 };
 $('bOpen').onclick=async()=>{
   sfx('ui');
-  const s=sheet(`<div class="ohead"><h2></h2><button class="btn" id="mClose"></button></div><h3 id="hEx"></h3><div class="mgrid" id="gEx"></div><h3 id="hMine"></h3><div class="mgrid" id="gMine"></div>`);
+  const s=sheet(`<div class="ohead"><h2></h2><button class="btn" id="mClose"></button></div><h3 id="hEx"></h3><div class="mgrid" id="gEx"></div><h3 id="hMine"></h3><div class="mgrid" id="gMine"></div><h3 id="hCloud"></h3><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="muted" id="spL"></span><input id="spI" maxlength="32" style="font:600 13px var(--f-ui);padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:140px"><button class="btn" id="spB"></button><span class="muted" id="spH" style="font-size:12px"></span></div><div class="mgrid" id="gCloud"></div>`);
   s.querySelector('.box').classList.add('wide');
   s.querySelector('h2').textContent=t('openTitle'); s.querySelector('#mClose').textContent=t('close');
   s.querySelector('#hEx').textContent=t('examples'); s.querySelector('#hMine').textContent=t('mine');
@@ -1136,10 +1165,22 @@ $('bOpen').onclick=async()=>{
     grid.append(d); return d;
   };
   const gEx=s.querySelector('#gEx'), gMine=s.querySelector('#gMine');
-  card(gMine,{name:t('startNew'),meta:'',ph:'+',onOpen:()=>loadModel({name:t('newModel'),parts:[],step:1})});
+  card(gMine,{name:t('startNew'),meta:'',ph:'+',onOpen:()=>{ cloudId=null; loadModel({name:t('newModel'),parts:[],step:1}); }});
+  s.querySelector('#hCloud').textContent=t('cloudTitle'); s.querySelector('#spL').textContent=t('spaceLbl'); s.querySelector('#spH').textContent=t('spaceHint');
+  const spI=s.querySelector('#spI'), spB=s.querySelector('#spB'), gC=s.querySelector('#gCloud'); spI.value=space; spB.textContent=t('useSpace');
+  spI.onkeydown=e=>{ e.stopPropagation(); if(e.key==='Enter') spB.click(); };
+  const loadCloud=async()=>{ gC.innerHTML='<p class="muted" style="grid-column:1/-1"></p>'; gC.firstChild.textContent=t('loadingShort');
+    try{ const rows=await rpc('vexgo_list',{p_space:space}); gC.innerHTML='';
+      if(!rows.length){ gC.innerHTML='<p class="muted" style="grid-column:1/-1"></p>'; gC.firstChild.textContent=t('cloudEmpty'); }
+      for(const m of rows) card(gC,{name:m.name,meta:t('meta',m.count,date(Date.parse(m.updated_at))),thumb:typeof m.thumb==='string'&&m.thumb.startsWith('data:image/')?m.thumb:null,
+        onOpen:async()=>{ try{ const r=await rpc('vexgo_get',{p_id:m.id}); await loadModel(r.data,null); cloudId=m.id; edited=true; saveDraft(); }catch{ toast(t('tCloudErr')); } },
+        onDel:async()=>{ const ok=await rpc('vexgo_delete',{p_id:m.id,p_key:devKey()}); if(!ok){ toast(t('tNotOwner')); throw new Error('owner'); } if(cloudId===m.id) cloudId=null; }});
+    }catch(e){ gC.innerHTML='<p class="muted" style="grid-column:1/-1"></p>'; gC.firstChild.textContent=t(e.status===404?'tCloudOff':'tCloudErr'); } };
+  spB.onclick=()=>{ const v=spI.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,''); if(v.length<2) return; space=v; spI.value=v; try{ localStorage.setItem('vexgo-space',v); }catch{} sfx('ui'); loadCloud(); };
+  loadCloud();
   // my models: this device, plus the shared database when it exists
   for(const m of localList()) card(gMine,{name:m.name,meta:t('meta',Number(m.count)||0,date(m.updated)),thumb:typeof m.thumb==='string'&&m.thumb.startsWith('data:image/')?m.thumb:null,ph:'',
-    onOpen:()=>loadModel(m,m.id), onDel:async()=>{ localWrite(localList().filter(x=>x.id!==m.id)); if(modelId===m.id) modelId=null; }});
+    onOpen:()=>{ cloudId=null; loadModel(m,m.id); }, onDel:async()=>{ localWrite(localList().filter(x=>x.id!==m.id)); if(modelId===m.id) modelId=null; }});
   if(db){ try{ const q=await db.collection('models').orderBy('updated','desc').limit(50).get();
     q.docs.forEach(dd=>{ const m={id:dd.id,...dd.data()}; card(gMine,{name:m.name,meta:t('meta',Number(m.count)||0,date(m.updated)),thumb:typeof m.thumb==='string'&&m.thumb.startsWith('data:image/')?m.thumb:null,
       onOpen:()=>loadModel(m,m.id), onDel:async()=>{ await db.collection('models').doc(m.id).delete(); if(modelId===m.id) modelId=null; }}); }); }catch{} }
@@ -1161,7 +1202,7 @@ $('bMore').onclick=()=>{
   s.querySelector('#fc').onclick=()=>s.remove();
   s.querySelector('#fi').onclick=()=>{s.remove(); $('fileIn').click();};
   s.querySelector('#fx').onclick=async()=>{
-    const data=JSON.stringify({name:model.name,ref:model.ref||null,step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step,g})=>({sid,col,p,q,dir,step,...(g?{g}:{})}))},null,1);
+    const data=JSON.stringify({name:model.name,ref:model.ref||null,groups:model.groups||{},step:model.step,parts:model.parts.map(({sid,col,p,q,dir,step,g})=>({sid,col,p,q,dir,step,...(g?{g}:{})}))},null,1);
     const filename=(model.name||'model').replace(/[\\/:*?"<>|]/g,'_')+'.json';
     try{
       if(window.claude&&claude.use){ const dl=await claude.use('downloads'); if(dl){ await dl.save({filename,data}); s.remove(); return; } }
@@ -1412,6 +1453,65 @@ async function checkCollision(){
   if(collide){ ghost.traverse(o=>{ if(o.isMesh) o.material=mat('#e5484d','g'); }); need(); updateHint(); }
 }
 
+
+/* ---- Ctrl + drag: box select (capture phase, so the camera does not move) ---- */
+{ let bx=null; const box=$('selbox');
+  stage.addEventListener('pointerdown',e=>{ if(!(e.ctrlKey||e.metaKey)||e.button!==0||mode!=='build'||armed||e.target!==canvas) return;
+    e.stopPropagation(); const r=stage.getBoundingClientRect(); bx={x:e.clientX-r.left,y:e.clientY-r.top,r,moved:false}; canvas.setPointerCapture(e.pointerId); },{capture:true});
+  stage.addEventListener('pointermove',e=>{ if(!bx) return; e.stopPropagation(); const x=e.clientX-bx.r.left, y=e.clientY-bx.r.top;
+    if(Math.hypot(x-bx.x,y-bx.y)>6) bx.moved=true; if(!bx.moved) return;
+    Object.assign(box.style,{left:Math.min(x,bx.x)+'px',top:Math.min(y,bx.y)+'px',width:Math.abs(x-bx.x)+'px',height:Math.abs(y-bx.y)+'px'}); box.hidden=false; },{capture:true});
+  stage.addEventListener('pointerup',e=>{ if(!bx) return; const b=bx; bx=null; box.hidden=true; if(!b.moved) return;   // a plain Ctrl+click falls through to normal selection
+    e.stopPropagation(); down=null; const x=e.clientX-b.r.left, y=e.clientY-b.r.top, x0=Math.min(x,b.x), x1=Math.max(x,b.x), y0=Math.min(y,b.y), y1=Math.max(y,b.y);
+    const hit=new Set(); for(const m of meshes){ const v=m.userData.c.clone().project(camera); const sx=(v.x+1)/2*b.r.width, sy=(1-v.y)/2*b.r.height; if(v.z<1&&sx>=x0&&sx<=x1&&sy>=y0&&sy<=y1) hit.add(m.userData.i); }
+    if(!hit.size) return; for(const i of hit) for(const j of membersOf(i)) selSet.add(j); selected=[...hit].at(-1); slideInfo=null; sfx('pick'); syncScene(); updateHint(); if(treeOn) renderTree(); },{capture:true});
+}
+
+/* ---- group list panel ---- */
+function renderGroups(){
+  const box=$('glist'); if(!box||$('gpanel').hidden) return; box.innerHTML=''; const G=new Map();
+  model.parts.forEach((p,i)=>{ if(!p.g) return; if(!G.has(p.g)) G.set(p.g,[]); G.get(p.g).push(i); });
+  model.groups=model.groups||{}; let n=0;
+  if(!G.size){ box.innerHTML='<p class="muted" style="margin:0"></p>'; box.firstChild.textContent=t('gEmpty'); return; }
+  for(const [g,idx] of G){ n++; if(!model.groups[g]) model.groups[g]=t('groupName',n);
+    const hid=idx.every(i=>model.parts[i]._h), on=idx.every(i=>selSet.has(i));
+    const d=document.createElement('div'); d.className='gitem'+(on?' on':'');
+    d.innerHTML=`<div class="ghead"><button class="tg" aria-expanded="false">▸</button><input maxlength="40"><button class="sel"></button><button class="eye"></button></div><ul class="gitems" hidden></ul>`;
+    const inp=d.querySelector('input'); inp.value=model.groups[g]; inp.setAttribute('aria-label',t('groups'));
+    inp.onchange=()=>{ model.groups[g]=inp.value.trim().slice(0,40)||t('groupName',n); edited=true; saveDraft(); };
+    inp.onkeydown=e=>{ e.stopPropagation(); if(e.key==='Enter') inp.blur(); };
+    const sb=d.querySelector('.sel'); sb.textContent='◎'; sb.title=t('gSelect'); sb.onclick=()=>{ if(mode!=='build') setMode('build'); sfx('pick'); selectPart(idx[0],false); renderGroups(); };
+    const eb=d.querySelector('.eye'); eb.innerHTML=hid?EYE_OFF:EYE; eb.title=t(hid?'cShowAll':'cHide');
+    eb.onclick=()=>{ for(const i of idx){ if(hid) delete model.parts[i]._h; else model.parts[i]._h=true; } sfx('ui'); syncScene(); rebuildDots(); refreshShowAll(); renderGroups(); if(treeOn) renderTree(); };
+    const ul=d.querySelector('ul'), tg=d.querySelector('.tg');
+    tg.onclick=()=>{ const o=ul.hidden; ul.hidden=!o; tg.textContent=o?'▾':'▸'; tg.setAttribute('aria-expanded',o); };
+    const cnt={}; for(const i of idx){ const p=model.parts[i], k=p.sid+'|'+p.col; cnt[k]=(cnt[k]||0)+1; }
+    for(const [k,c] of Object.entries(cnt)){ const [sid,col]=k.split('|'), li=document.createElement('li'); li.innerHTML='<img alt=""><span></span>'; li.querySelector('img').src=`t/${sid}_${col}.png`; li.querySelector('span').textContent=PART[sid].name+' x'+c; ul.append(li); }
+    box.append(d); }
+}
+$('vGrp').onclick=()=>{ const p=$('gpanel'); p.hidden=!p.hidden; $('vGrp').setAttribute('aria-pressed',!p.hidden); sfx('ui'); renderGroups(); };
+$('gClose').onclick=()=>$('vGrp').click();
+
+/* ---- cloud: Supabase RPC, same project as Alvik Match Control ---- */
+const SB_URL='https://sylaqdubfjgmaxhtrrnk.supabase.co', SB_KEY='sb_publishable_9x3-7C7fLbQZBDtkk8YAGw_P1XclMv8';
+let space='irap'; try{ space=localStorage.getItem('vexgo-space')||'irap'; }catch{}
+function devKey(){ try{ let k=localStorage.getItem('vexgo-key'); if(!k){ k=[...crypto.getRandomValues(new Uint8Array(24))].map(b=>b.toString(16).padStart(2,'0')).join(''); localStorage.setItem('vexgo-key',k); } return k; }catch{ return null; } }
+async function rpc(fn,args){
+  const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(args)});
+  if(!r.ok){ const e=new Error(await r.text().catch(()=>'')); e.status=r.status; throw e; } return r.json();
+}
+let cloudId=null;
+async function saveCloud(body){
+  const key=devKey(); if(!key) return;
+  const data={name:body.name,ref:body.ref,groups:body.groups,step:body.step,parts:body.parts};
+  try{
+    let id; try{ id=await rpc('vexgo_save',{p_id:cloudId,p_key:key,p_space:space,p_name:body.name,p_data:data,p_thumb:body.thumb}); }
+    catch(e){ if(cloudId&&/not owner/.test(e.message)) id=await rpc('vexgo_save',{p_id:null,p_key:key,p_space:space,p_name:body.name,p_data:data,p_thumb:body.thumb}); else throw e; }
+    cloudId=id; sfx('step'); toast(t('tCloudSaved',body.name));
+  }catch(e){ sfx('err'); toast(t(e.status===404?'tCloudOff':'tCloudErr')); }
+}
+$('vCloud').onclick=()=>{ sfx('ui'); $('bSave').onclick({cloud:true}); };
+
 /* ---------- language switch ---------- */
 function applyLang(){
   document.documentElement.lang=lang;
@@ -1436,7 +1536,8 @@ $('lTh').onclick=()=>{sfx('ui'); setLang('th');}; $('lEn').onclick=()=>{sfx('ui'
 /* ---------- boot ---------- */
 function loop(now){
   requestAnimationFrame(loop);
-  const anim=animate(now);
+  let anim=animate(now);
+  if(hl.visible){ const w=.5+.5*Math.sin(now/140); hl.scale.setScalar(1+.35*w); hl.material.opacity=.55+.45*w; hlGlow.material.opacity=.25+.55*w; anim=true; }   // the chosen hole blinks
   const moved=controls.update();
   if(anim||moved||dirty){ dirty=false; renderer.render(scene,camera); placeMeasureLabel(); }
 }
