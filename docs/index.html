@@ -275,7 +275,7 @@ th:{
   prev:'ก่อนหน้า',next:'ถัดไป',chooseStep:'เลือก Step',loading:'กำลังโหลดชิ้นส่วน',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pin และ Connector',tab_motion:'Gear Wheel Shaft',tab_other:'อื่นๆ',tab_elec:'Electronics',
   iqName:'ชื่อใน VEX IQ Legal Parts',
-  hSel:'{0} ถูกเลือก กด ถอดออก เพื่อย้าย Shift+คลิก หรือ เลือกหลายชิ้น เพื่อเลือกเพิ่ม',hSelSlide:'{0} ถูกเลือก ลากแถบ เลื่อนบนแกน หรือกดลูกศรขึ้นลง กด ถอดออก เพื่อย้าย',pickUp:'ถอดออก',slide:'เลื่อนบนแกน',
+  hSel:'{0} ถูกเลือก กด ถอดออก เพื่อย้าย กด Ctrl หรือ Shift ค้างแล้วคลิก หรือ เลือกหลายชิ้น เพื่อเลือกเพิ่ม',hSelSlide:'{0} ถูกเลือก ลากแถบ เลื่อนบนแกน หรือกดลูกศรขึ้นลง กด ถอดออก เพื่อย้าย',pickUp:'ถอดออก',slide:'เลื่อนบนแกน',
   hPick:'เลือกชิ้นจากคลัง หรือแตะชิ้นบนโมเดลเพื่อเลือก',
   hFirst:'เลือกชิ้นแรกจากคลัง แล้วแตะบนพื้นเพื่อวาง',
   hArmed:'{0} แตะจุดบนโมเดล หรือแตะพื้นเพื่อวาง',
@@ -301,7 +301,7 @@ en:{
   prev:'Back',next:'Next',chooseStep:'Choose step',loading:'Loading parts',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pins and Connectors',tab_motion:'Gears, Wheels, Shafts',tab_other:'Other',tab_elec:'Electronics',
   iqName:'Name in VEX IQ Legal Parts',
-  hSel:'{0} selected. Press Take off to move it. Shift+click or Select many to add parts',hSelSlide:'{0} selected. Drag Slide on shaft or use the up and down arrows. Press Take off to move it',pickUp:'Take off',slide:'Slide on shaft',
+  hSel:'{0} selected. Press Take off to move it. Hold Ctrl or Shift and click, or use Select many, to add parts',hSelSlide:'{0} selected. Drag Slide on shaft or use the up and down arrows. Press Take off to move it',pickUp:'Take off',slide:'Slide on shaft',
   hPick:'Pick a part from the library, or tap a part on the model to select it',
   hFirst:'Pick the first part from the library, then tap the floor to place it',
   hArmed:'{0} Tap a hole on the model, or tap the floor to place',
@@ -591,7 +591,8 @@ canvas.addEventListener('pointerup',e=>{
     if(e.pointerType==='mouse'){ if(lockHover){ place(); return; } if(!sameHover(h,hover)&&!(hover&&hover.type==='conn'&&screenDist(hover.c.p,e)<30)){hover=h;ptIdx=0;} if(hover) updateGhost().then(place); return; }
     if(h&&sameHover(h,hover)) place(); else {hover=h;ptIdx=0;updateGhost();}
   } else {
-    const ni=(h&&h.type==='part')?h.i:-1; if(ni>=0) sfx('pick'); const add=(e.shiftKey||multiOn)&&ni>=0; if(ni<0&&(e.shiftKey||multiOn)) return; selectPart(ni,add);
+    const ni=(h&&h.type==='part')?h.i:-1; if(ni>=0) sfx('pick'); const many=e.shiftKey||e.ctrlKey||e.metaKey||multiOn, add=many&&ni>=0; if(ni<0&&many) return;
+    selectPart(ni,add);   // Ctrl, Cmd or Shift adds to the selection
   }
 });
 
@@ -807,7 +808,8 @@ $('tPick').onclick=()=>{
   selected=-1; selSet=new Set(); slideInfo=null; sfx('pick'); ptIdx=0; depIdx=0; hover=null; spin=0; tilt=0; afterChange();
 };
 $('tCancel').onclick=()=>{ sfx('ui'); if(armed){ if(armed.group){ $('tUndo').click(); return; } disarm(); return; } if(selected>=0) selectPart(-1); };   // putting back a group restores it where it was
-canvas.addEventListener('contextmenu',e=>{ if(armed||selected>=0){ e.preventDefault(); $('tCancel').click(); } });
+canvas.addEventListener('contextmenu',e=>{ if(e.ctrlKey){ e.preventDefault(); return; }   // Ctrl+click on a Mac is a selection, not a cancel
+  if(armed||selected>=0){ e.preventDefault(); $('tCancel').click(); } });
 
 /* ---------- library and BOM ---------- */
 let curCat='beam';
