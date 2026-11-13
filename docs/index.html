@@ -460,6 +460,8 @@ const camera=new THREE.PerspectiveCamera(35,1,1,8000); camera.up.set(0,0,1); cam
 const controls=new OrbitControls(camera,canvas); controls.enableDamping=true; controls.target.set(0,0,20);
 let dirty=true; const need=()=>{dirty=true;};
 controls.addEventListener('change',need);
+controls.mouseButtons={LEFT:THREE.MOUSE.ROTATE,MIDDLE:THREE.MOUSE.PAN,RIGHT:THREE.MOUSE.PAN};   // middle drag pans like right drag; the wheel still zooms
+canvas.addEventListener('mousedown',e=>{ if(e.button===1) e.preventDefault(); });   // no browser autoscroll on middle click
 scene.add(new THREE.HemisphereLight(0xffffff,0x8a94a6,1.6));
 const sun=new THREE.DirectionalLight(0xffffff,1.9); sun.position.set(200,-300,500); scene.add(sun);
 const fill=new THREE.DirectionalLight(0xffffff,.6); fill.position.set(-300,200,150); scene.add(fill);
