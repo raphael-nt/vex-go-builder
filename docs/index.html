@@ -652,7 +652,7 @@ function updateHint(){
   if(mode==='view'){ h.hidden=false; h.textContent=t(view2d?'galleryHint':'viewHint'); return; }
   if(mode!=='build'){h.hidden=true;return;} h.hidden=false;
   if(measureOn){ h.textContent=t('hMeasure'); return; }
-  if(selSet.size>1){ h.textContent=t('hMulti',selSet.size); return; }
+  if(selSet.size>1){ h.textContent=slideInfo?t('hSelSlide',t('groupOf',selSet.size)):t('hMulti',selSet.size); return; }
   if(selected>=0){h.textContent=t(slideInfo?'hSelSlide':'hSel',PART[model.parts[selected].sid].name); return;}
   if(!armed){h.textContent=t(model.parts.length?'hPick':'hFirst'); return;}
   const nm=armed.group?t('groupOf',armed.group.length):PART[armed.sid].name;
@@ -855,7 +855,7 @@ function refreshTools(){
   $('tGroup').hidden=holding||selSet.size<2||(gs.every(g=>g&&g===gs[0]));
   $('tUngroup').hidden=holding||!gs.some(Boolean);
   $('tMulti').hidden=holding||mode!=='build'; $('tMulti').setAttribute('aria-pressed',multiOn);
-  $('slideBox').hidden=!(sel&&slideInfo&&!holding&&selSet.size===1);
+  $('slideBox').hidden=!(sel&&slideInfo&&!holding);
   if(sel&&slideInfo){ const r=$('tSlide'); r.min=slideInfo.lo.toFixed(2); r.max=slideInfo.hi.toFixed(2); r.value=slideInfo.t.toFixed(2); }
   $('tCancelT').textContent=t(holding?'putBack':'deselect'); $('tCancel').dataset.ic=holding?'x':'x'; tipOf($('tCancel'));
   setIc($('tLock'),$('tLock').getAttribute('aria-pressed')==='true'?'unlock':'lock'); tipOf($('tLock'));
@@ -880,49 +880,50 @@ function radialExtent(i,a,n){ let r=0; eachVertex(i,v=>{ const d=v.clone().sub(a
 function axialRange(i,a,n,R){ let lo=1e9,hi=-1e9; eachVertex(i,v=>{ const d=v.clone().sub(a), ax=d.dot(n); if(d.addScaledVector(n,-ax).lengthSq()>R*R) return; const x=ax+a.dot(n); lo=Math.min(lo,x); hi=Math.max(hi,x); }); return lo<hi?[lo,hi]:null; }
 /* a selected part slides when one of its shaft holes (FS) or pin holes (FP) sits on a shaft (MS connectors on the same line).
    Range: the shaft length, stopped by every other part threaded on the same line, so nothing overlaps. */
-function computeSlide(i){
-  const shaftC=worldConns(i).find(c=>c.k==='MS');
-  if(shaftC&&maleOnly(model.parts[i].sid)){
-    // the shaft itself moves: it must not run into material on its line, and must stay through every hole it already passes
-    const a=shaftC.p, n=shaftC.n.clone().normalize(), R=1.0;
-    const me=axialRange(i,a,n,R+2); if(!me) return null;
-    let lo=-60, hi=60;
-    model.parts.forEach((q,j)=>{
-      if(j===i) return;
+/* Slide along a shaft, like a concentric mate in SolidWorks: the selection keeps its axis and only moves along it.
+   Case A: a hole of the selection sits on a shaft outside it (plate, wheel, collar or a whole group on a shaft).
+   Case B: the selection holds a shaft that passes through holes outside it (shaft with its wheels in fixed beams).
+   Limits: the shaft length (A) or the outside holes (B), and any outside material close to the axis, so nothing overlaps. */
+function computeSlide(S){
+  S=[...new Set(S)]; const inS=new Set(S);
+  if(!S.length||S.some(isLocked)) return null;
+  const R=4.5;
+  const span=(a,n)=>{ let lo=1e9,hi=-1e9; for(const k of S){ const r=axialRange(k,a,n,R); if(r){ lo=Math.min(lo,r[0]); hi=Math.max(hi,r[1]); } } return lo<hi?[lo,hi]:null; };
+  const blockers=(a,n,me,lo,hi,skip)=>{ model.parts.forEach((q,j)=>{ if(inS.has(j)||skip.has(j)) return;
       eachVertex(j,v=>{ const d=v.clone().sub(a), ax=d.dot(n); if(d.addScaledVector(n,-ax).lengthSq()>R*R) return; const x=ax+a.dot(n);
-        if(x<=me[0]+.05) lo=Math.max(lo,x-me[0]); else if(x>=me[1]-.05) hi=Math.min(hi,x-me[1]); });
-      for(const w of worldConns(j)) if(w.k[0]==='F'&&onLine(w.p,a,n)){ const hpos=w.p.dot(n); if(hpos>=me[0]-.5&&hpos<=me[1]+.5){ lo=Math.max(lo,hpos+1-me[1]); hi=Math.min(hi,hpos-1-me[0]); } }
-    });
-    if(hi-lo<.25) return null;
-    return {n,lo:Math.min(lo,0),hi:Math.max(hi,0),t:0,start:V(model.parts[i].p)};
-  }
-  const mine=worldConns(i).filter(c=>c.k==='FS'||c.k==='FP');
-  for(const c of mine){
+        if(x<=me[0]+.05) lo=Math.max(lo,x-me[0]); else if(x>=me[1]-.05) hi=Math.min(hi,x-me[1]); }); });
+    return [lo,hi]; };
+  const done=(n,lo,hi)=>hi-lo<.25?null:{n,lo:Math.min(lo,0),hi:Math.max(hi,0),t:0,idx:S,starts:S.map(k=>V(model.parts[k].p))};
+  // case A
+  const tried=new Set();
+  for(const i of S) for(const c of worldConns(i)){
+    if(c.k!=='FS'&&c.k!=='FP') continue;
     const a=c.p, n=c.n.clone().normalize();
-    const shaftIdx=model.parts.findIndex((q,j)=>{ if(j===i||!PART[q.sid].conn.some(x=>x.k==='MS')) return false;   // any shaft whose axis passes through this hole, anywhere along its length
+    const sj=model.parts.findIndex((q,j)=>{ if(inS.has(j)||!PART[q.sid].conn.some(x=>x.k==='MS')) return false;
       if(!worldConns(j).some(w=>w.k==='MS'&&Math.abs(Math.abs(w.n.dot(n))-1)<.02&&onLine(w.p,a,n))) return false;
       const r=boxOn(j,n); return !!r&&a.dot(n)>=r[0]-1&&a.dot(n)<=r[1]+1; });
-    if(shaftIdx<0) continue;
-    const sh=boxOn(shaftIdx,n); if(!sh) continue;
-    // real geometry close to the shaft line, not bounding boxes: a wheel's tire is wide but its hub is narrow
-    const R=Math.min(radialExtent(i,a,n)+.3,4.5), me=axialRange(i,a,n,R); if(!me) continue;   // only material close to the shaft blocks the slide (hubs, collars, other threaded parts)
-    let lo=sh[0]-me[0], hi=sh[1]-me[1];
-    model.parts.forEach((q,j)=>{
-      if(j===i||j===shaftIdx) return;
-      eachVertex(j,v=>{ const d=v.clone().sub(a), ax=d.dot(n); if(d.addScaledVector(n,-ax).lengthSq()>R*R) return; const x=ax+a.dot(n);
-        if(x<=me[0]+.05) lo=Math.max(lo,x-me[0]); else if(x>=me[1]-.05) hi=Math.min(hi,x-me[1]); });
-    });
-    if(hi-lo<.25) continue;
-    return {n,lo:Math.min(lo,0),hi:Math.max(hi,0),t:0,start:V(model.parts[i].p)};
+    if(sj<0||tried.has(sj)) continue; tried.add(sj);
+    const sh=boxOn(sj,n), me=span(a,n); if(!sh||!me) continue;
+    const [lo,hi]=blockers(a,n,me,sh[0]-me[0],sh[1]-me[1],new Set([sj]));
+    const r=done(n,lo,hi); if(r) return r;
+  }
+  // case B
+  for(const k of S){ if(!maleOnly(model.parts[k].sid)) continue;
+    const sc=worldConns(k).find(c=>c.k==='MS'); if(!sc) continue;
+    const a=sc.p, n=sc.n.clone().normalize(), me=span(a,n); if(!me) continue;
+    let lo=-60, hi=60; const holes=new Set();
+    model.parts.forEach((q,j)=>{ if(inS.has(j)) return; for(const w of worldConns(j)) if(w.k[0]==='F'&&onLine(w.p,a,n)){ const hp=w.p.dot(n), sr=boxOn(k,n); if(sr&&hp>=sr[0]-.5&&hp<=sr[1]+.5){ holes.add(j); lo=Math.max(lo,hp+1-sr[1]); hi=Math.min(hi,hp-1-sr[0]); } } });
+    if(!holes.size) continue;
+    const [l2,h2]=blockers(a,n,me,lo,hi,holes);
+    const r=done(n,l2,h2); if(r) return r;
   }
   return null;
 }
 function moveSelected(tv){
-  if(selected<0||!slideInfo) return;
+  if(!slideInfo) return;
   tv=Math.max(slideInfo.lo,Math.min(slideInfo.hi,tv)); slideInfo.t=tv;
-  const np=slideInfo.start.clone().addScaledVector(slideInfo.n,tv), p=model.parts[selected];
-  p.p=np.toArray().map(x=>Math.round(x*1000)/1000);
-  for(const m of meshes) if(m.userData.i===selected){ m.position.copy(np); m.userData.home=np.clone(); }
+  slideInfo.idx.forEach((k,m)=>{ const np=slideInfo.starts[m].clone().addScaledVector(slideInfo.n,tv); model.parts[k].p=np.toArray().map(x=>Math.round(x*1000)/1000);
+    for(const ms of meshes) if(ms.userData.i===k){ ms.position.copy(np); ms.userData.home=np.clone(); } });
   need();
 }
 $('tSlide').addEventListener('input',e=>{ if(!slideSnap){ snapshot(); slideSnap=true; } moveSelected(+e.target.value); });
@@ -934,7 +935,7 @@ $('tLock').onclick=()=>{
   if(selected<0) return; const on=![...selSet].every(isLocked); snapshot();
   for(const i of selSet){ if(on) model.parts[i].lock=true; else delete model.parts[i].lock; }
   sfx('ui'); toast(t(on?'tLockedN':'tUnlockedN',selSet.size));
-  slideInfo=(selSet.size===1&&!isLocked(selected))?computeSlide(selected):null; syncScene(); updateHint(); saveDraft(); if(treeOn) renderTree();
+  slideInfo=selSet.size?computeSlide(selSet):null; syncScene(); updateHint(); saveDraft(); if(treeOn) renderTree();
 };
 /* ---------- drag a part to move it: no Take off needed. Release on a hole to snap, Esc to cancel ---------- */
 let drag=null;
@@ -983,7 +984,7 @@ function selectPart(i,add){
   if(i<0){ selSet=new Set(); selected=-1; }
   else if(add){ const mem=membersOf(i), on=mem.every(j=>selSet.has(j)); for(const j of mem) on?selSet.delete(j):selSet.add(j); selected=selSet.size?(on?[...selSet].at(-1):i):-1; }
   else { selSet=new Set(membersOf(i)); selected=i; }
-  slideInfo=(selected>=0&&selSet.size===1&&!isLocked(selected))?computeSlide(selected):null; syncScene(); updateHint(); if(treeOn) renderTree();
+  slideInfo=selSet.size?computeSlide(selSet):null; syncScene(); updateHint(); if(treeOn) renderTree();
 }
 $('tMulti').onclick=()=>{ multiOn=!multiOn; sfx('ui'); refreshTools(); };
 $('tGroup').onclick=()=>{ if(selSet.size<2) return; snapshot(); const g=newGid(); for(const i of selSet) model.parts[i].g=g; (model.groups=model.groups||{})[g]=t('groupName',Object.keys(model.groups).length+1); renderGroups(); sfx('step'); toast(t('tGrouped',selSet.size)); saveDraft(); refreshTools(); };
@@ -1571,7 +1572,7 @@ async function checkCollision(){
     if(!b.moved){ e.stopPropagation(); down=null; const h=pick(e); if(h&&h.type==='part'){ sfx('pick'); selectPart(h.i,true); } return; }   // Ctrl+click adds or removes one part
     e.stopPropagation(); down=null; const x=e.clientX-b.r.left, y=e.clientY-b.r.top, x0=Math.min(x,b.x), x1=Math.max(x,b.x), y0=Math.min(y,b.y), y1=Math.max(y,b.y);
     const hit=new Set(); for(const m of meshes){ const v=m.userData.c.clone().project(camera); const sx=(v.x+1)/2*b.r.width, sy=(1-v.y)/2*b.r.height; if(v.z<1&&sx>=x0&&sx<=x1&&sy>=y0&&sy<=y1) hit.add(m.userData.i); }
-    if(!hit.size) return; for(const i of hit) for(const j of membersOf(i)) selSet.add(j); selected=[...hit].at(-1); slideInfo=null; sfx('pick'); syncScene(); updateHint(); if(treeOn) renderTree(); },{capture:true});
+    if(!hit.size) return; for(const i of hit) for(const j of membersOf(i)) selSet.add(j); selected=[...hit].at(-1); slideInfo=computeSlide(selSet); sfx('pick'); syncScene(); updateHint(); if(treeOn) renderTree(); },{capture:true});
 }
 
 /* ---- group list panel ---- */
