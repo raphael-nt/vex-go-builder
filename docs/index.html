@@ -895,38 +895,72 @@ function axialRange(i,a,n,R){ let lo=1e9,hi=-1e9; eachVertex(i,v=>{ const d=v.cl
    Case A: a hole of the selection sits on a shaft outside it (plate, wheel, collar or a whole group on a shaft).
    Case B: the selection holds a shaft that passes through holes outside it (shaft with its wheels in fixed beams).
    Limits: the shaft length (A) or the outside holes (B), and any outside material close to the axis, so nothing overlaps. */
-function computeSlide(S){
-  S=[...new Set(S)]; const inS=new Set(S);
-  if(!S.length||S.some(isLocked)) return null;
+/* Joint graph: a pin, standoff or shaft (male) in a hole (female) joins two parts. Face-to-face contacts do not join,
+   so a collar pressed on a plate stays where it is. */
+function jointGraph(){
+  const W=[]; model.parts.forEach((p,i)=>W.push(...worldConns(i)));
+  const H=new Map(), key=(x,y,z)=>x+','+y+','+z;
+  for(const c of W){ const k=key(Math.round(c.p.x),Math.round(c.p.y),Math.round(c.p.z)); if(!H.has(k)) H.set(k,[]); H.get(k).push(c); }
+  const adj=model.parts.map(()=>new Set());
+  for(const c of W){ if(c.k[0]!=='M') continue; const bx=Math.round(c.p.x), by=Math.round(c.p.y), bz=Math.round(c.p.z);
+    for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) for(let dz=-1;dz<=1;dz++) for(const o of H.get(key(bx+dx,by+dy,bz+dz))||[]){
+      if(o.i===c.i||o.k[0]!=='F'||c.p.distanceToSquared(o.p)>.64||!compat(c.k,o.k)) continue;
+      adj[c.i].add(o.i); adj[o.i].add(c.i); } }
+  return adj;
+}
+/* parts that travel with S: everything joined to it, not passing through the parts in stop.
+   If that reaches most of the model, S is held by the frame, so only S itself moves. */
+/* pins and standoffs (and anything else) held only by S: they come along when S is moved or taken off */
+function withRiders(S){ const adj=jointGraph(), out=new Set(S); let grew=true;
+  while(grew){ grew=false; model.parts.forEach((p,j)=>{ if(out.has(j)||!adj[j].size) return; if([...adj[j]].every(k=>out.has(k))){ out.add(j); grew=true; } }); }
+  return out; }
+function attached(S,stop){
+  const adj=jointGraph(), out=new Set(S), q=[...S];
+  while(q.length){ const i=q.pop(); for(const j of adj[i]) if(!out.has(j)&&!stop.has(j)){ out.add(j); q.push(j); } }
+  return out.size>Math.max(S.length+1,model.parts.length*.5)?new Set(S):out;
+}
+/* Slide along a shaft, like a concentric mate in SolidWorks: the selection keeps its axis and only moves along it.
+   Case A: a hole of the selection sits on a shaft outside it (plate, wheel, collar or a whole group on a shaft).
+   Case B: the selection holds a shaft that passes through holes outside it (shaft with its wheels in fixed beams).
+   Parts joined to the selection by pins or standoffs come along. Limits: the shaft length (A) or the outside holes (B),
+   and any outside material close to the axis, so nothing overlaps. */
+function computeSlide(S0){
+  S0=[...new Set(S0)];
+  if(!S0.length||S0.some(isLocked)) return null;
   const R=4.5;
-  const span=(a,n)=>{ let lo=1e9,hi=-1e9; for(const k of S){ const r=axialRange(k,a,n,R); if(r){ lo=Math.min(lo,r[0]); hi=Math.max(hi,r[1]); } } return lo<hi?[lo,hi]:null; };
-  const blockers=(a,n,me,lo,hi,skip)=>{ model.parts.forEach((q,j)=>{ if(inS.has(j)||skip.has(j)) return;
+  const span=(S,a,n)=>{ let lo=1e9,hi=-1e9; for(const k of S){ const r=axialRange(k,a,n,R); if(r){ lo=Math.min(lo,r[0]); hi=Math.max(hi,r[1]); } } return lo<hi?[lo,hi]:null; };
+  const blockers=(inS,a,n,me,lo,hi,skip)=>{ model.parts.forEach((q,j)=>{ if(inS.has(j)||skip.has(j)) return;
       eachVertex(j,v=>{ const d=v.clone().sub(a), ax=d.dot(n); if(d.addScaledVector(n,-ax).lengthSq()>R*R) return; const x=ax+a.dot(n);
         if(x<=me[0]+.05) lo=Math.max(lo,x-me[0]); else if(x>=me[1]-.05) hi=Math.min(hi,x-me[1]); }); });
     return [lo,hi]; };
-  const done=(n,lo,hi)=>hi-lo<.25?null:{n,lo:Math.min(lo,0),hi:Math.max(hi,0),t:0,idx:S,starts:S.map(k=>V(model.parts[k].p))};
+  const done=(S,n,lo,hi)=>hi-lo<.25||S.some(isLocked)?null:{n,lo:Math.min(lo,0),hi:Math.max(hi,0),t:0,idx:S,starts:S.map(k=>V(model.parts[k].p))};
+  const in0=new Set(S0), tried=new Set();
   // case A
-  const tried=new Set();
-  for(const i of S) for(const c of worldConns(i)){
+  for(const i of S0) for(const c of worldConns(i)){
     if(c.k!=='FS'&&c.k!=='FP') continue;
     const a=c.p, n=c.n.clone().normalize();
-    const sj=model.parts.findIndex((q,j)=>{ if(inS.has(j)||!PART[q.sid].conn.some(x=>x.k==='MS')) return false;
+    const sj=model.parts.findIndex((q,j)=>{ if(in0.has(j)||!PART[q.sid].conn.some(x=>x.k==='MS')) return false;
       if(!worldConns(j).some(w=>w.k==='MS'&&Math.abs(Math.abs(w.n.dot(n))-1)<.02&&onLine(w.p,a,n))) return false;
       const r=boxOn(j,n); return !!r&&a.dot(n)>=r[0]-1&&a.dot(n)<=r[1]+1; });
     if(sj<0||tried.has(sj)) continue; tried.add(sj);
-    const sh=boxOn(sj,n), me=span(a,n); if(!sh||!me) continue;
-    const [lo,hi]=blockers(a,n,me,sh[0]-me[0],sh[1]-me[1],new Set([sj]));
-    const r=done(n,lo,hi); if(r) return r;
+    const C=attached(S0,new Set([sj])), S=[...C];
+    const sh=boxOn(sj,n), me=span(S0,a,n); if(!sh||!me) continue;
+    const [lo,hi]=blockers(C,a,n,span(S,a,n)||me,sh[0]-me[0],sh[1]-me[1],new Set([sj]));
+    const r=done(S,n,lo,hi); if(r) return r;
   }
   // case B
-  for(const k of S){ if(!maleOnly(model.parts[k].sid)) continue;
+  for(const k of S0){ if(!maleOnly(model.parts[k].sid)) continue;
     const sc=worldConns(k).find(c=>c.k==='MS'); if(!sc) continue;
-    const a=sc.p, n=sc.n.clone().normalize(), me=span(a,n); if(!me) continue;
-    let lo=-60, hi=60; const holes=new Set();
-    model.parts.forEach((q,j)=>{ if(inS.has(j)) return; for(const w of worldConns(j)) if(w.k[0]==='F'&&onLine(w.p,a,n)){ const hp=w.p.dot(n), sr=boxOn(k,n); if(sr&&hp>=sr[0]-.5&&hp<=sr[1]+.5){ holes.add(j); lo=Math.max(lo,hp+1-sr[1]); hi=Math.min(hi,hp-1-sr[0]); } } });
+    const a=sc.p, n=sc.n.clone().normalize();
+    let lo=-60, hi=60; const holes=new Set(), sr=boxOn(k,n);
+    model.parts.forEach((q,j)=>{ if(in0.has(j)) return; const P=PART[q.sid]; if(P.conn.some(x=>x.k==='MS')) return;
+      for(const w of worldConns(j)) if(w.k[0]==='F'&&onLine(w.p,a,n)){ const hp=w.p.dot(n); if(sr&&hp>=sr[0]-.5&&hp<=sr[1]+.5){ holes.add(j); } } });
     if(!holes.size) continue;
-    const [l2,h2]=blockers(a,n,me,lo,hi,holes);
-    const r=done(n,l2,h2); if(r) return r;
+    const C=attached(S0,holes); for(const h of holes) C.delete(h); const S=[...C];
+    for(const j of holes) for(const w of worldConns(j)) if(w.k[0]==='F'&&onLine(w.p,a,n)){ const hp=w.p.dot(n); if(hp>=sr[0]-.5&&hp<=sr[1]+.5){ lo=Math.max(lo,hp+1-sr[1]); hi=Math.min(hi,hp-1-sr[0]); } }
+    const me=span(S,a,n); if(!me) continue;
+    const [l2,h2]=blockers(C,a,n,me,lo,hi,holes);
+    const r=done(S,n,l2,h2); if(r) return r;
   }
   return null;
 }
@@ -996,7 +1030,7 @@ function joints(S){
   model.parts.forEach((p,j)=>{ if(!inS.has(j)) others.push(...worldConns(j)); });
   for(const i of S) for(const c of worldConns(i)) for(const o of others){
     if(c.p.distanceToSquared(o.p)>.64||c.n.dot(o.n)>-.9||!compat(c.k,o.k)) continue;
-    out.push({p:c.p.clone(),n:c.n.clone(),lock:(c.k==='MS'&&o.k==='FS')||(c.k==='FS'&&o.k==='MS')});
+    out.push({j:o.i,p:c.p.clone(),n:c.n.clone(),lock:(c.k==='MS'&&o.k==='FS')||(c.k==='FS'&&o.k==='MS')});
   }
   return out;
 }
@@ -1005,12 +1039,20 @@ function blinkRed(S){ const set=new Set(S), red=mat('#e5484d','s'); let n=0;
   const id=setInterval(()=>{ n++; for(const m of meshes) if(set.has(m.userData.i)) m.material=n%2?red:mat(m.userData.hex,'s'); need(); if(n>=6){ clearInterval(id); syncScene(); } },130); }
 function spinSel(deg){
   if(mode!=='build'||armed||selected<0) return;
-  const S=[...selSet]; if(S.some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
-  const J=joints(S); let ax, breaks=false;
-  if(!J.length){ const b=new THREE.Box3(); for(const m of meshes) if(selSet.has(m.userData.i)) b.expandByObject(m); ax={p:b.getCenter(new THREE.Vector3()),n:new THREE.Vector3(0,0,1)}; }
-  else { ax=J.find(j=>!j.lock)||J[0]; breaks=J.some(j=>j.lock||!(Math.abs(j.n.dot(ax.n))>.98&&onLine(j.p,ax.p,ax.n))); }
+  const S0=[...selSet]; if(S0.some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
+  const in0=new Set(S0), adj=jointGraph();
+  const rider=j=>[...adj[j]].every(k=>in0.has(k));            // a pin or standoff held only by the selection rides along
+  const J0=joints(S0).filter(j=>!rider(j.j)); let ax, breaks=false, S=S0;
+  if(!J0.length){ S=[...attached(S0,new Set())]; const b=new THREE.Box3(); for(const m of meshes) if(selSet.has(m.userData.i)) b.expandByObject(m); ax={p:b.getCenter(new THREE.Vector3()),n:new THREE.Vector3(0,0,1)}; }
+  else {
+    ax=J0.find(j=>!j.lock)||J0[0];
+    const onAx=j=>Math.abs(j.n.dot(ax.n))>.98&&onLine(j.p,ax.p,ax.n);
+    S=[...attached(S0,new Set(J0.filter(onAx).map(j=>j.j)))];          // standoffs and pins on the part turn with it
+    if(S.some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
+    breaks=joints(S).some(j=>j.lock||!onAx(j));
+  }
   const now=performance.now();
-  if(breaks&&now-spinWarn>2500){ spinWarn=now; blinkRed(S); sfx('err'); toast(t('tSpinBreak')); return; }
+  if(breaks&&now-spinWarn>2500){ spinWarn=now; blinkRed(S0); sfx('err'); toast(t('tSpinBreak')); return; }
   spinWarn=breaks?now:-1e9;
   snapshot(); const q=new THREE.Quaternion().setFromAxisAngle(ax.n.clone().normalize(),deg*Math.PI/180), r=a=>a.map(x=>Math.round(x*1000)/1000);
   for(const k of S){ const p=model.parts[k];
@@ -1050,6 +1092,7 @@ function makeGroup(idx,primary){
 function pickGroup(){ const a=makeGroup(selSet,selected); snapshot(); for(const i of [...selSet].sort((x,y)=>y-x)) model.parts.splice(i,1); armed=a; }
 $('tPick').onclick=()=>{
   if(selected<0) return;
+  { const R=withRiders(selSet); if(R.size>selSet.size&&![...R].some(isLocked)) selSet=R; }   // pins and standoffs on the part come with it
   if([...selSet].some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
   if(selSet.size>1) pickGroup();
   else { const p=model.parts[selected]; snapshot(); model.parts.splice(selected,1); armed={sid:p.sid,col:p.col,hex:p.hex,moved:true}; }   // a taken-off part is placed once, like a move
