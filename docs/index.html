@@ -267,7 +267,7 @@ main.side-off aside{overflow:hidden;border-right:0}
     </div>
     <button class="btn icon" id="bFull" hidden></button>
     <button class="btn icon" id="bSnd" aria-pressed="true"></button>
-    <button class="btn hb" id="bOpen" data-ic="folder"><span class="lb" data-i18n="open">Open</span></button>
+    <button class="btn hb" id="bOpen" data-ic="folder" data-k="Ctrl+O"><span class="lb" data-i18n="open">Open</span></button>
     <button class="btn hb primary" id="bSave" data-ic="save" data-k="Ctrl+S"><span class="lb" data-i18n="save">Save</span></button>
     <button class="btn hb" id="bMore" data-ic="file"><span class="lb" data-i18n="file">File</span></button>
     <button class="btn icon hb" id="bKeys" data-ic="keyboard" data-i18n-aria="keysTitle" data-k="?"></button>
@@ -320,8 +320,9 @@ main.side-off aside{overflow:hidden;border-right:0}
           <button class="btn tb" id="tTilt2" data-ic="flip2" data-k="V"><span class="lb" data-i18n="tilt2"></span></button>
         </div>
         <div class="tg">
-          <button class="btn tb primary" id="tPick" data-ic="move" hidden><span class="lb" data-i18n="pickUp"></span></button>
+          <button class="btn tb primary" id="tPick" data-ic="move" data-k="E" hidden><span class="lb" data-i18n="pickUp"></span></button>
           <label class="slide" id="slideBox" hidden><span data-i18n="slide"></span><input type="range" id="tSlide" step="0.25"></label>
+          <button class="btn tb" id="tSpin" data-ic="rotate" data-k="Q, Shift+Q" hidden><span class="lb" data-i18n="spinPin"></span></button>
           <button class="btn tb" id="tLock" data-ic="lock" data-k="L" hidden aria-pressed="false"><span class="lb" id="tLockT"></span></button>
           <button class="btn tb" id="tGroup" data-ic="group" data-k="G" hidden><span class="lb" data-i18n="group"></span></button>
           <button class="btn tb" id="tUngroup" data-ic="ungroup" data-k="Shift+G" hidden><span class="lb" data-i18n="ungroup"></span></button>
@@ -329,8 +330,8 @@ main.side-off aside{overflow:hidden;border-right:0}
         </div>
         <div class="tg">
           <button class="btn tb" id="tCancel" data-ic="x" data-k="Esc" hidden><span class="lb" id="tCancelT"></span></button>
-          <button class="btn tb" id="tMulti" data-ic="multi" hidden aria-pressed="false"><span class="lb" data-i18n="multi"></span></button>
-          <button class="btn tb" id="tStep" data-ic="step"><span class="lb" data-i18n="newStep"></span></button>
+          <button class="btn tb" id="tMulti" data-ic="multi" data-k="A" hidden aria-pressed="false"><span class="lb" data-i18n="multi"></span></button>
+          <button class="btn tb" id="tStep" data-ic="step" data-k="N"><span class="lb" data-i18n="newStep"></span></button>
         </div>
       </div>
       <div class="instr-nav" id="instrNav" hidden>
@@ -384,7 +385,7 @@ th:{
   prev:'ก่อนหน้า',next:'ถัดไป',chooseStep:'เลือก Step',loading:'กำลังโหลดชิ้นส่วน',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pin และ Connector',tab_motion:'Gear Wheel Shaft',tab_other:'อื่นๆ',tab_elec:'Electronics',
   iqName:'ชื่อใน VEX IQ Legal Parts',
-  hSel:'{0} ลากเพื่อย้าย',hSelSlide:'{0} ลากแถบหรือกด ↑↓ เพื่อเลื่อนบนแกน',pickUp:'ถอดออก',lock:'ล็อก',unlock:'ปลดล็อก',cLock:'ล็อก หรือ ปลดล็อก',tLocked:'ชิ้นนี้ถูกล็อกอยู่ ปลดล็อกก่อนจึงจะย้ายหรือลบได้',tLockedN:'ล็อก {0} ชิ้นแล้ว',tUnlockedN:'ปลดล็อก {0} ชิ้นแล้ว',k_lock:'ล็อก หรือ ปลดล็อกชิ้นที่เลือก',slide:'เลื่อนบนแกน',
+  hSel:'{0} ลากเพื่อย้าย',hSelSlide:'{0} ลากแถบหรือกด ↑↓ เพื่อเลื่อนบนแกน',pickUp:'ถอดออก',lock:'ล็อก',unlock:'ปลดล็อก',cLock:'ล็อก หรือ ปลดล็อก',spinPin:'หมุนรอบ pin',tSpinBreak:'หมุนตรงนี้จะทำให้หลุดจากจุดต่อ กดอีกครั้งเพื่อหมุนต่อ',tSpinLoose:'หมุนจนหลุดจากจุดต่อแล้ว',k_take:'ถอดออก',k_spin:'หมุนชิ้นที่เลือกรอบ pin ทีละ 15°',k_step:'Step ใหม่',k_all:'เลือกหลายชิ้น เลือกทั้งหมด',k_file:'บันทึก เปิด',tLocked:'ชิ้นนี้ถูกล็อกอยู่ ปลดล็อกก่อนจึงจะย้ายหรือลบได้',tLockedN:'ล็อก {0} ชิ้นแล้ว',tUnlockedN:'ปลดล็อก {0} ชิ้นแล้ว',k_lock:'ล็อก หรือ ปลดล็อกชิ้นที่เลือก',slide:'เลื่อนบนแกน',
   hPick:'เลือกชิ้นจากคลัง หรือคลิกชิ้นบนโมเดล',
   hFirst:'เลือกชิ้นแรกจากคลัง',
   hArmed:'{0} แตะรูหรือพื้นเพื่อวาง',
@@ -410,7 +411,7 @@ en:{
   prev:'Back',next:'Next',chooseStep:'Choose step',loading:'Loading parts',
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pins and Connectors',tab_motion:'Gears, Wheels, Shafts',tab_other:'Other',tab_elec:'Electronics',
   iqName:'Name in VEX IQ Legal Parts',
-  hSel:'{0}. Drag to move',hSelSlide:'{0}. Slide with the bar or ↑↓',pickUp:'Take off',lock:'Lock',unlock:'Unlock',cLock:'Lock or unlock',tLocked:'This part is locked. Unlock it before moving or deleting',tLockedN:'Locked {0} parts',tUnlockedN:'Unlocked {0} parts',k_lock:'Lock or unlock the selection',slide:'Slide on shaft',
+  hSel:'{0}. Drag to move',hSelSlide:'{0}. Slide with the bar or ↑↓',pickUp:'Take off',lock:'Lock',unlock:'Unlock',cLock:'Lock or unlock',spinPin:'Turn on pin',tSpinBreak:'Turning here breaks a joint. Press again to turn it loose',tSpinLoose:'Turned loose from its joint',k_take:'Take off',k_spin:'Turn the selection on its pin by 15°',k_step:'New step',k_all:'Select many, select all',k_file:'Save, open',tLocked:'This part is locked. Unlock it before moving or deleting',tLockedN:'Locked {0} parts',tUnlockedN:'Unlocked {0} parts',k_lock:'Lock or unlock the selection',slide:'Slide on shaft',
   hPick:'Pick a part from the library or click the model',
   hFirst:'Pick a first part from the library',
   hArmed:'{0}. Tap a hole or the floor',
@@ -776,6 +777,8 @@ addEventListener('keydown',e=>{
   const mod=e.ctrlKey||e.metaKey;
   if(mod&&(c==='KeyY'||(c==='KeyZ'&&e.shiftKey))){ e.preventDefault(); $('tRedo').click(); return; }
   if(c==='KeyZ'&&mod){ e.preventDefault(); $('tUndo').click(); return; }
+  if(mod&&c==='KeyO'){ e.preventDefault(); $('bOpen').click(); return; }
+  if(mod&&mode==='build'&&c==='KeyA'&&!armed){ e.preventDefault(); selSet=new Set(model.parts.map((p,i)=>p._h?-1:i).filter(i=>i>=0)); selected=selSet.size?[...selSet].at(-1):-1; slideInfo=null; syncScene(); updateHint(); return; }
   if(mod&&c==='KeyS'){ e.preventDefault(); $('bSave').click(); return; }
   if(mod&&mode==='build'&&c==='KeyC'){ if(copySel()) e.preventDefault(); return; }
   if(mod&&mode==='build'&&c==='KeyV'){ if(clip){ e.preventDefault(); paste(); } return; }
@@ -784,6 +787,10 @@ addEventListener('keydown',e=>{
   if(mode==='build'&&(c==='KeyR'||c==='KeyT'||c==='KeyF')) e.preventDefault();
   if(c==='KeyT'){ if(e.repeat) return; if(armed&&mode==='build'){ $('tPt').click(); if(hover&&hover.type==='conn') setLock(true); } return; }
   if(c==='KeyR'){ if(armed&&mode==='build') $('tRot').click(); return; }
+  if(c==='KeyQ'&&mode==='build'&&!armed&&selected>=0){ e.preventDefault(); spinSel(e.shiftKey?-15:15); return; }
+  if(c==='KeyE'&&mode==='build'&&!armed&&selected>=0){ e.preventDefault(); $('tPick').click(); return; }
+  if(c==='KeyN'&&mode==='build'&&!armed){ e.preventDefault(); $('tStep').click(); return; }
+  if(c==='KeyA'&&mode==='build'&&!armed){ e.preventDefault(); $('tMulti').click(); return; }
   if(c==='KeyL'&&mode==='build'&&!armed&&selected>=0){ e.preventDefault(); $('tLock').click(); return; }
   if(c==='KeyG'&&mode==='build'&&!armed){ e.preventDefault(); if(e.shiftKey){ if(!$('tUngroup').hidden) $('tUngroup').click(); } else if(!$('tGroup').hidden) $('tGroup').click(); return; }
   if(c==='KeyD'){ if(armed&&mode==='build'&&!$('tDepth').hidden){ e.preventDefault(); $('tDepth').click(); } return; }
@@ -849,7 +856,7 @@ function refreshTools(){
   for(const id of ['tRot','tPt','tTilt','tTilt2','tPlace']) $(id).hidden=!holding;
   const ch=holding&&hover&&hover.type==='conn'?chosenOption(hover.c):null;
   $('tDepth').hidden=!(ch&&ch.deps>1); if(ch&&ch.deps>1) $('tDepthN').textContent=(ch.dep+1)+'/'+ch.deps;
-  $('tDel').hidden=!sel; $('tCancel').hidden=!(holding||sel); $('tPick').hidden=!sel||holding;
+  $('tDel').hidden=!sel; $('tSpin').hidden=!sel||holding; $('tCancel').hidden=!(holding||sel); $('tPick').hidden=!sel||holding;
   { const lk=sel&&[...selSet].every(isLocked); $('tLock').hidden=!sel||holding||mode!=='build'; $('tLock').setAttribute('aria-pressed',!!lk); $('tLockT').textContent=t(lk?'unlock':'lock'); }
   const gs=[...selSet].map(i=>model.parts[i]&&model.parts[i].g);
   $('tGroup').hidden=holding||selSet.size<2||(gs.every(g=>g&&g===gs[0]));
@@ -976,6 +983,40 @@ stage.addEventListener('pointerup',e=>{
   updateGhost().then(()=>{ if(!pose||!armed){ back(); return; } const st=model.step; model.step=d.step; place(); model.step=st; disarm(); });
 },{capture:true});
 stage.addEventListener('pointercancel',()=>{ if(drag) cancelDrag(); },{capture:true});
+
+/* ---------- turn on a pin: pin joints act like a mate. One pin axis = the part turns on it.
+   Two or more axes, or a square shaft joint, would break the joint: the parts blink red first,
+   and pressing again within 2.5 s turns it anyway, so the part comes loose. ---------- */
+function joints(S){
+  const inS=new Set(S), out=[], others=[];
+  model.parts.forEach((p,j)=>{ if(!inS.has(j)) others.push(...worldConns(j)); });
+  for(const i of S) for(const c of worldConns(i)) for(const o of others){
+    if(c.p.distanceToSquared(o.p)>.64||c.n.dot(o.n)>-.9||!compat(c.k,o.k)) continue;
+    out.push({p:c.p.clone(),n:c.n.clone(),lock:(c.k==='MS'&&o.k==='FS')||(c.k==='FS'&&o.k==='MS')});
+  }
+  return out;
+}
+let spinWarn=-1e9;
+function blinkRed(S){ const set=new Set(S), red=mat('#e5484d','s'); let n=0;
+  const id=setInterval(()=>{ n++; for(const m of meshes) if(set.has(m.userData.i)) m.material=n%2?red:mat(m.userData.hex,'s'); need(); if(n>=6){ clearInterval(id); syncScene(); } },130); }
+function spinSel(deg){
+  if(mode!=='build'||armed||selected<0) return;
+  const S=[...selSet]; if(S.some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
+  const J=joints(S); let ax, breaks=false;
+  if(!J.length){ const b=new THREE.Box3(); for(const m of meshes) if(selSet.has(m.userData.i)) b.expandByObject(m); ax={p:b.getCenter(new THREE.Vector3()),n:new THREE.Vector3(0,0,1)}; }
+  else { ax=J.find(j=>!j.lock)||J[0]; breaks=J.some(j=>j.lock||!(Math.abs(j.n.dot(ax.n))>.98&&onLine(j.p,ax.p,ax.n))); }
+  const now=performance.now();
+  if(breaks&&now-spinWarn>2500){ spinWarn=now; blinkRed(S); sfx('err'); toast(t('tSpinBreak')); return; }
+  spinWarn=breaks?now:-1e9;
+  snapshot(); const q=new THREE.Quaternion().setFromAxisAngle(ax.n.clone().normalize(),deg*Math.PI/180), r=a=>a.map(x=>Math.round(x*1000)/1000);
+  for(const k of S){ const p=model.parts[k];
+    p.p=r(V(p.p).sub(ax.p).applyQuaternion(q).add(ax.p).toArray());
+    p.q=r(q.clone().multiply(new THREE.Quaternion(...p.q)).normalize().toArray());
+    p.dir=r(V(p.dir||[0,0,1]).applyQuaternion(q).toArray()); }
+  sfx('ui'); rebuildConns(); slideInfo=computeSlide(selSet); syncScene(); rebuildDots(); updateHint(); saveDraft();
+  if(breaks) toast(t('tSpinLoose'));
+}
+$('tSpin').onclick=e=>spinSel(e.shiftKey?-15:15);
 /* ---------- groups: parts with the same g move together ---------- */
 let selSet=new Set(), multiOn=false;
 const newGid=()=>'g'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);
@@ -1379,7 +1420,7 @@ function saveCsv(){
   downloadBlob(fileName('.csv'),new Blob(['﻿'+rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'})); sfx('step');
 }
 function showKeys(){
-  const K=[['R','k_rot'],['T','k_hole'],['D','k_depth'],['F','k_tilt'],['Enter','k_place'],['Esc','k_esc'],['Ctrl+Z','k_undo'],['Ctrl+Y','k_redo'],['Ctrl+C / V / D','k_copy'],['Shift+M','k_mirror'],['G / Shift+G','k_group'],['H / I / Shift+H','k_hide'],['L','k_lock'],['Delete','k_del'],['Ctrl / Shift + click','k_multi'],['F','k_fit'],['1 2 3 4','k_views'],['X','k_x'],['M','k_m'],['Wheel','k_wheel'],['↑ ↓ ← →','k_arrows'],['Right-click','k_right']];
+  const K=[['R','k_rot'],['T','k_hole'],['D','k_depth'],['F','k_tilt'],['Enter','k_place'],['Esc','k_esc'],['Ctrl+Z','k_undo'],['Ctrl+Y','k_redo'],['Ctrl+C / V / D','k_copy'],['Shift+M','k_mirror'],['G / Shift+G','k_group'],['H / I / Shift+H','k_hide'],['E','k_take'],['Q / Shift+Q','k_spin'],['L','k_lock'],['N','k_step'],['A / Ctrl+A','k_all'],['Ctrl+S / Ctrl+O','k_file'],['Delete','k_del'],['Ctrl / Shift + click','k_multi'],['F','k_fit'],['1 2 3 4','k_views'],['X','k_x'],['M','k_m'],['Wheel','k_wheel'],['↑ ↓ ← →','k_arrows'],['Right-click','k_right']];
   const s=sheet(`<div class="ohead"><h2></h2><button class="btn" id="kc"></button></div><div class="keys"></div>`);
   s.querySelector('h2').textContent=t('keysTitle'); s.querySelector('#kc').textContent=t('close'); s.querySelector('#kc').onclick=()=>s.remove();
   const g=s.querySelector('.keys'); for(const [k,d] of K){ const a=document.createElement('kbd'); a.textContent=k; const b=document.createElement('span'); b.textContent=t(d); g.append(a,b); }
@@ -1494,7 +1535,7 @@ function openCtx(x,y,h){
   const i=h&&h.type==='part'?h.i:-1; if(i>=0&&!selSet.has(i)) selectPart(i,false);
   const items=[], has=selected>=0, gs=[...selSet].map(k=>model.parts[k]&&model.parts[k].g), anyHidden=model.parts.some(p=>p._h);
   if(has){
-    items.push(['cTake','',()=>$('tPick').click()],['cCopy','Ctrl+C',copySel],['cDup','Ctrl+D',()=>{ if(copySel()) paste(); }],['cMirror','Shift+M',mirrorSel],'-');
+    items.push(['cTake','E',()=>$('tPick').click()],['spinPin','Q',()=>spinSel(15)],['cCopy','Ctrl+C',copySel],['cDup','Ctrl+D',()=>{ if(copySel()) paste(); }],['cMirror','Shift+M',mirrorSel],'-');
     if(selSet.size>1&&!gs.every(g=>g&&g===gs[0])) items.push(['cGroup','G',()=>$('tGroup').click()]);
     if(gs.some(Boolean)) items.push(['cUngroup','Shift+G',()=>$('tUngroup').click()]);
     items.push(['cHide','H',()=>hideSel(false)],['cIsolate','I',()=>hideSel(true)],['cLock','L',()=>$('tLock').click()]);
@@ -1666,7 +1707,7 @@ function setIc(el,n){ if(!el||el.dataset.icNow===n) return; const old=el.querySe
 function tipOf(el){ const lb=el.querySelector('.lb'); const txt=(lb&&lb.textContent.trim())||el.getAttribute('aria-label')||''; el.dataset.tip=txt+(el.dataset.k?'  ('+el.dataset.k+')':''); if(lb&&getComputedStyle(lb).display==='none') el.setAttribute('aria-label',txt); }
 function decorate(){ document.querySelectorAll('[data-ic]').forEach(el=>{ setIc(el,el.dataset.icNow||el.dataset.ic); tipOf(el); }); }
 const VT_IC={fit:'fit',front:'front',top:'top',side:'side',iso:'iso',xray:'xray',section:'section',measure:'measure',groups:'groups',cloud:'cloud'};
-const CTX_IC={cTake:'move',cCopy:'copy',cDup:'copy',cMirror:'mirror',cGroup:'group',cUngroup:'ungroup',cHide:'eyeoff',cIsolate:'focus',cShowAll:'eye',fit:'fit',cDel:'trash',cPaste:'paste',cLock:'lock'};
+const CTX_IC={cTake:'move',cCopy:'copy',cDup:'copy',cMirror:'mirror',cGroup:'group',cUngroup:'ungroup',cHide:'eyeoff',cIsolate:'focus',cShowAll:'eye',fit:'fit',cDel:'trash',cPaste:'paste',cLock:'lock',spinPin:'rotate'};
 /* ---------- language switch ---------- */
 function applyLang(){
   document.documentElement.lang=lang;
@@ -1715,7 +1756,7 @@ function loop(now){
   if(location.hash==='#instructions') setMode('instr'); else if(location.hash==='#showcase') setMode('view');
   if(window.claude&&claude.use){ claude.use('db').then(d=>{db=d;}).catch(()=>{}); }
 })();
-window.__vx={dbgSlide:i=>{const out=[]; const mine=worldConns(i).filter(c=>c.k==='FS'||c.k==='FP'); for(const c of mine){ const a=c.p,n=c.n.clone().normalize(); const sh=model.parts.findIndex((q,j)=>{ if(j===i||!PART[q.sid].conn.some(x=>x.k==='MS')) return false; if(!worldConns(j).some(w=>w.k==='MS'&&Math.abs(Math.abs(w.n.dot(n))-1)<.02&&onLine(w.p,a,n))) return false; const r=boxOn(j,n); return !!r&&a.dot(n)>=r[0]-1&&a.dot(n)<=r[1]+1; }); if(sh>=0) out.push(model.parts[sh].sid); } return out;}, pickAt:(x,y)=>{const h=pick({clientX:x,clientY:y}); return h&&h.type==='part'?h.i:-1;}, partScreen:i=>{const m=meshes.find(m=>m.userData.i===i); if(!m) return null; const r=canvas.getBoundingClientRect(), v=m.userData.c.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, camPos:()=>camera.position.toArray(), sel:()=>({selected,set:[...selSet],armedGroup:armed&&armed.group?armed.group.length:0,armedConns:armed?armedConns().length:0}), selectAdd:(i,a)=>selectPart(i,a), THREE, geo:sid=>geoCache[sid]&&geoCache[sid]._v, compat:(a,b)=>compat(a,b), select:i=>selectPart(i), slide:()=>slideInfo&&{lo:slideInfo.lo,hi:slideInfo.hi,t:slideInfo.t}, moveSel:v=>{snapshot();moveSelected(v);rebuildConns();}, pickUp:()=>$('tPick').click(), armedNow:()=>armed&&armed.sid, candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
+window.__vx={spin:d=>spinSel(d), jn:S=>joints(S).length, dbgSlide:i=>{const out=[]; const mine=worldConns(i).filter(c=>c.k==='FS'||c.k==='FP'); for(const c of mine){ const a=c.p,n=c.n.clone().normalize(); const sh=model.parts.findIndex((q,j)=>{ if(j===i||!PART[q.sid].conn.some(x=>x.k==='MS')) return false; if(!worldConns(j).some(w=>w.k==='MS'&&Math.abs(Math.abs(w.n.dot(n))-1)<.02&&onLine(w.p,a,n))) return false; const r=boxOn(j,n); return !!r&&a.dot(n)>=r[0]-1&&a.dot(n)<=r[1]+1; }); if(sh>=0) out.push(model.parts[sh].sid); } return out;}, pickAt:(x,y)=>{const h=pick({clientX:x,clientY:y}); return h&&h.type==='part'?h.i:-1;}, partScreen:i=>{const m=meshes.find(m=>m.userData.i===i); if(!m) return null; const r=canvas.getBoundingClientRect(), v=m.userData.c.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, camPos:()=>camera.position.toArray(), sel:()=>({selected,set:[...selSet],armedGroup:armed&&armed.group?armed.group.length:0,armedConns:armed?armedConns().length:0}), selectAdd:(i,a)=>selectPart(i,a), THREE, geo:sid=>geoCache[sid]&&geoCache[sid]._v, compat:(a,b)=>compat(a,b), select:i=>selectPart(i), slide:()=>slideInfo&&{lo:slideInfo.lo,hi:slideInfo.hi,t:slideInfo.t}, moveSel:v=>{snapshot();moveSelected(v);rebuildConns();}, pickUp:()=>$('tPick').click(), armedNow:()=>armed&&armed.sid, candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
 </script>
 </body>
 </html>
