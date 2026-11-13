@@ -895,27 +895,41 @@ function axialRange(i,a,n,R){ let lo=1e9,hi=-1e9; eachVertex(i,v=>{ const d=v.cl
    Case A: a hole of the selection sits on a shaft outside it (plate, wheel, collar or a whole group on a shaft).
    Case B: the selection holds a shaft that passes through holes outside it (shaft with its wheels in fixed beams).
    Limits: the shaft length (A) or the outside holes (B), and any outside material close to the axis, so nothing overlaps. */
-/* Joint graph: a pin, standoff or shaft (male) in a hole (female) joins two parts. Face-to-face contacts do not join,
-   so a collar pressed on a plate stays where it is. */
-function jointGraph(){
+/* Joint graph: a pin, standoff, connector peg or shaft (male) in a hole (female) joins two parts, and so do two round
+   holes face to face (spacer, connector, stacked beams). Square shaft holes face to face do not, so a collar pressed
+   on a plate stays on its shaft. */
+function jointGraph(faces=true){
   const W=[]; model.parts.forEach((p,i)=>W.push(...worldConns(i)));
   const H=new Map(), key=(x,y,z)=>x+','+y+','+z;
   for(const c of W){ const k=key(Math.round(c.p.x),Math.round(c.p.y),Math.round(c.p.z)); if(!H.has(k)) H.set(k,[]); H.get(k).push(c); }
   const adj=model.parts.map(()=>new Set());
-  for(const c of W){ if(c.k[0]!=='M') continue; const bx=Math.round(c.p.x), by=Math.round(c.p.y), bz=Math.round(c.p.z);
+  for(const c of W){ if(c.k[0]!=='M'&&!(faces&&c.k==='FP')) continue; const bx=Math.round(c.p.x), by=Math.round(c.p.y), bz=Math.round(c.p.z);
     for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) for(let dz=-1;dz<=1;dz++) for(const o of H.get(key(bx+dx,by+dy,bz+dz))||[]){
       if(o.i===c.i||o.k[0]!=='F'||c.p.distanceToSquared(o.p)>.64||!compat(c.k,o.k)) continue;
+      if(c.k==='FP'&&(o.k!=='FP'||c.n.dot(o.n)>-.9)) continue;      // round holes face to face (spacer, connector, stacked plates) also join
       adj[c.i].add(o.i); adj[o.i].add(c.i); } }
+  // a hole anywhere along a shaft is on that shaft, not only at the shaft's connector stations
+  model.parts.forEach((p,k)=>{ if(!PART[p.sid].conn.some(c=>c.k==='MS')) return;
+    const w=worldConns(k).find(c=>c.k==='MS'), n=w.n, ext=boxOn(k,n); if(!ext) return;
+    for(const c of W){ if(c.i===k||c.k[0]!=='F'||Math.abs(Math.abs(c.n.dot(n))-1)>.02||!onLine(c.p,w.p,n)) continue;
+      const x=c.p.dot(n); if(x<ext[0]-1.5||x>ext[1]+1.5) continue; adj[k].add(c.i); adj[c.i].add(k); } });
   return adj;
 }
 /* parts that travel with S: everything joined to it, not passing through the parts in stop.
    If that reaches most of the model, S is held by the frame, so only S itself moves. */
 /* pins and standoffs (and anything else) held only by S: they come along when S is moved or taken off */
-function withRiders(S){ const adj=jointGraph(), out=new Set(S); let grew=true;
-  while(grew){ grew=false; model.parts.forEach((p,j)=>{ if(out.has(j)||!adj[j].size) return; if([...adj[j]].every(k=>out.has(k))){ out.add(j); grew=true; } }); }
+function withRiders(S){
+  const adj=jointGraph(), inS=new Set(S), out=new Set(S), seen=new Set();
+  model.parts.forEach((p,st)=>{ if(inS.has(st)||seen.has(st)) return;
+    const comp=[st], q=[st]; seen.add(st); let free=true, touches=false;          // one piece of the model outside S
+    while(q.length){ const i=q.pop(); for(const j of adj[i]){ if(inS.has(j)){ touches=true; continue; } if(!seen.has(j)){ seen.add(j); comp.push(j); q.push(j); } } }
+    // a piece that touches S and nothing else (a spacer on a pin, a connector with its pins) rides along
+    // a shaft is a guide, not a rider: a plate taken off a shaft leaves the shaft and its wheels
+    if(touches&&comp.length<model.parts.length*.5&&!comp.some(i=>PART[model.parts[i].sid].conn.some(c=>c.k==='MS'))) for(const i of comp) out.add(i);
+  });
   return out; }
-function attached(S,stop){
-  const adj=jointGraph(), out=new Set(S), q=[...S];
+function attached(S,stop,faces=true){
+  const adj=jointGraph(faces), out=new Set(S), q=[...S];
   while(q.length){ const i=q.pop(); for(const j of adj[i]) if(!out.has(j)&&!stop.has(j)){ out.add(j); q.push(j); } }
   return out.size>Math.max(S.length+1,model.parts.length*.5)?new Set(S):out;
 }
@@ -1029,9 +1043,18 @@ function joints(S){
   const inS=new Set(S), out=[], others=[];
   model.parts.forEach((p,j)=>{ if(!inS.has(j)) others.push(...worldConns(j)); });
   for(const i of S) for(const c of worldConns(i)) for(const o of others){
+    if(c.k[0]===o.k[0]) continue;                               // faces touching do not hold a turn
     if(c.p.distanceToSquared(o.p)>.64||c.n.dot(o.n)>-.9||!compat(c.k,o.k)) continue;
     out.push({j:o.i,p:c.p.clone(),n:c.n.clone(),lock:(c.k==='MS'&&o.k==='FS')||(c.k==='FS'&&o.k==='MS')});
   }
+  // holes of S on a shaft outside S, anywhere along it; and a shaft of S through outside holes
+  model.parts.forEach((p,k)=>{ if(!PART[p.sid].conn.some(c=>c.k==='MS')) return;
+    const w=worldConns(k).find(c=>c.k==='MS'), n=w.n, ext=boxOn(k,n); if(!ext) return;
+    const cands=inS.has(k)?others:S.flatMap(i=>worldConns(i));
+    for(const c of cands){ if(c.i===k||c.k[0]!=='F'||Math.abs(Math.abs(c.n.dot(n))-1)>.02||!onLine(c.p,w.p,n)) continue;
+      const x=c.p.dot(n); if(x<ext[0]-1.5||x>ext[1]+1.5) continue;
+      if(inS.has(k)&&inS.has(c.i)) continue;
+      out.push({j:inS.has(k)?c.i:k,p:c.p.clone(),n:n.clone(),lock:c.k==='FS'}); } });
   return out;
 }
 let spinWarn=-1e9;
@@ -1041,13 +1064,13 @@ function spinSel(deg){
   if(mode!=='build'||armed||selected<0) return;
   const S0=[...selSet]; if(S0.some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
   const in0=new Set(S0), adj=jointGraph();
-  const rider=j=>[...adj[j]].every(k=>in0.has(k));            // a pin or standoff held only by the selection rides along
-  const J0=joints(S0).filter(j=>!rider(j.j)); let ax, breaks=false, S=S0;
+  const riders=withRiders(S0);                                // pins, standoffs, spacers and connectors held only by the selection
+  const J0=joints(S0).filter(j=>!riders.has(j.j)); let ax, breaks=false, S=S0;
   if(!J0.length){ S=[...attached(S0,new Set())]; const b=new THREE.Box3(); for(const m of meshes) if(selSet.has(m.userData.i)) b.expandByObject(m); ax={p:b.getCenter(new THREE.Vector3()),n:new THREE.Vector3(0,0,1)}; }
   else {
     ax=J0.find(j=>!j.lock)||J0[0];
     const onAx=j=>Math.abs(j.n.dot(ax.n))>.98&&onLine(j.p,ax.p,ax.n);
-    S=[...attached(S0,new Set(J0.filter(onAx).map(j=>j.j)))];          // standoffs and pins on the part turn with it
+    S=[...attached(S0,new Set(J0.filter(onAx).map(j=>j.j)),false)];          // standoffs and pins on the part turn with it
     if(S.some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
     breaks=joints(S).some(j=>j.lock||!onAx(j));
   }
@@ -1806,7 +1829,7 @@ function loop(now){
   if(location.hash==='#instructions') setMode('instr'); else if(location.hash==='#showcase') setMode('view');
   if(window.claude&&claude.use){ claude.use('db').then(d=>{db=d;}).catch(()=>{}); }
 })();
-window.__vx={spin:d=>spinSel(d), jn:S=>joints(S).length, dbgSlide:i=>{const out=[]; const mine=worldConns(i).filter(c=>c.k==='FS'||c.k==='FP'); for(const c of mine){ const a=c.p,n=c.n.clone().normalize(); const sh=model.parts.findIndex((q,j)=>{ if(j===i||!PART[q.sid].conn.some(x=>x.k==='MS')) return false; if(!worldConns(j).some(w=>w.k==='MS'&&Math.abs(Math.abs(w.n.dot(n))-1)<.02&&onLine(w.p,a,n))) return false; const r=boxOn(j,n); return !!r&&a.dot(n)>=r[0]-1&&a.dot(n)<=r[1]+1; }); if(sh>=0) out.push(model.parts[sh].sid); } return out;}, pickAt:(x,y)=>{const h=pick({clientX:x,clientY:y}); return h&&h.type==='part'?h.i:-1;}, partScreen:i=>{const m=meshes.find(m=>m.userData.i===i); if(!m) return null; const r=canvas.getBoundingClientRect(), v=m.userData.c.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, camPos:()=>camera.position.toArray(), sel:()=>({selected,set:[...selSet],armedGroup:armed&&armed.group?armed.group.length:0,armedConns:armed?armedConns().length:0}), selectAdd:(i,a)=>selectPart(i,a), THREE, geo:sid=>geoCache[sid]&&geoCache[sid]._v, compat:(a,b)=>compat(a,b), select:i=>selectPart(i), slide:()=>slideInfo&&{lo:slideInfo.lo,hi:slideInfo.hi,t:slideInfo.t}, moveSel:v=>{snapshot();moveSelected(v);rebuildConns();}, pickUp:()=>$('tPick').click(), armedNow:()=>armed&&armed.sid, candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
+window.__vx={axdbg:(k,i)=>{const w=worldConns(k).find(c=>c.k==='MS'), n=w.n, ext=boxOn(k,n); return {ext, wc:worldConns(i).filter(c=>c.k==='FS').map(c=>({x:c.p.dot(n),dot:c.n.dot(n),line:c.p.clone().sub(w.p).cross(n).length()}))};}, adj:()=>jointGraph().map(a=>[...a]), riders:S=>[...withRiders(S)], spin:d=>spinSel(d), jn:S=>joints(S).length, dbgSlide:i=>{const out=[]; const mine=worldConns(i).filter(c=>c.k==='FS'||c.k==='FP'); for(const c of mine){ const a=c.p,n=c.n.clone().normalize(); const sh=model.parts.findIndex((q,j)=>{ if(j===i||!PART[q.sid].conn.some(x=>x.k==='MS')) return false; if(!worldConns(j).some(w=>w.k==='MS'&&Math.abs(Math.abs(w.n.dot(n))-1)<.02&&onLine(w.p,a,n))) return false; const r=boxOn(j,n); return !!r&&a.dot(n)>=r[0]-1&&a.dot(n)<=r[1]+1; }); if(sh>=0) out.push(model.parts[sh].sid); } return out;}, pickAt:(x,y)=>{const h=pick({clientX:x,clientY:y}); return h&&h.type==='part'?h.i:-1;}, partScreen:i=>{const m=meshes.find(m=>m.userData.i===i); if(!m) return null; const r=canvas.getBoundingClientRect(), v=m.userData.c.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, camPos:()=>camera.position.toArray(), sel:()=>({selected,set:[...selSet],armedGroup:armed&&armed.group?armed.group.length:0,armedConns:armed?armedConns().length:0}), selectAdd:(i,a)=>selectPart(i,a), THREE, geo:sid=>geoCache[sid]&&geoCache[sid]._v, compat:(a,b)=>compat(a,b), select:i=>selectPart(i), slide:()=>slideInfo&&{lo:slideInfo.lo,hi:slideInfo.hi,t:slideInfo.t}, moveSel:v=>{snapshot();moveSelected(v);rebuildConns();}, pickUp:()=>$('tPick').click(), armedNow:()=>armed&&armed.sid, candScreen:k=>{const r=canvas.getBoundingClientRect(); const c=cand[k||0]; if(!c) return null; const v=c.p.clone().project(camera); return [r.left+(v.x+1)/2*r.width, r.top+(1-v.y)/2*r.height];}, state:()=>({ptIdx,spin,lock:lockHover,hover:hover&&hover.type,ctl:controls.enabled,hint:$('hintL').textContent}), meshCount:()=>[meshes.length,root.children.length],cam:(pos,tgt)=>{camera.position.set(...pos);controls.target.set(...tgt);controls.update();need();}, grid:v=>{grid.visible=v;need();}, get model(){return model}, PART:()=>PART, setArmed:(sid,col)=>{const P=PART[sid];const c=P.colors.find(x=>x.c===col)||P.colors[0];armed={sid,col:c.c,hex:c.hex};}, freeConns:()=>freeConns, snapPose:(tg,j,s)=>snapPose(tg,j,s), srcOptions:tg=>srcOptions(tg), groundPose:p=>groundPose(p), place:ps=>{pose=ps;place();}, afterChange, loadModel, ensureGeo, setSpin:s=>spin=s, setTilt:v=>tilt=v, newStep:()=>$('tStep').click(), setMode, frame, setLang};
 </script>
 </body>
 </html>
