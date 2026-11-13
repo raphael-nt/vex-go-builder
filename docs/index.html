@@ -77,7 +77,7 @@ main.side-off aside{overflow:hidden;border-right:0}
 .stage{position:relative;min-width:0;min-height:0;background:var(--mat)}
 #c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .tools{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;flex-wrap:wrap;justify-content:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:0 6px 24px rgba(10,20,40,.12);max-width:calc(100% - 24px)}
-.tools .btn{padding:8px 12px}
+.tools .btn{padding:7px 10px}
 .tools kbd{font:500 10.5px var(--f-num);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:5px}
 .hint{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;align-items:flex-start}
 .chip{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--ink);box-shadow:0 2px 10px rgba(10,20,40,.08)}
@@ -157,7 +157,7 @@ main.side-off aside{overflow:hidden;border-right:0}
 .tree .eye svg{width:16px;height:16px}
 .keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}
 .keys kbd{font:500 12px var(--f-num);border:1px solid var(--line);border-radius:5px;padding:1px 6px;background:var(--bg);white-space:nowrap}
-@media (max-width:640px){ .vbar{top:auto;bottom:86px;right:8px} .vbar button{min-width:38px;padding:5px 6px;font-size:11px} .vpop{right:8px;bottom:86px;top:auto!important} }
+@media (max-width:640px){ .vpop{right:8px;bottom:120px;top:auto!important} }
 .tag{position:absolute;z-index:5;pointer-events:none;transform:translate(-50%,calc(-100% - 14px));background:var(--ink);color:var(--panel);font-weight:600;font-size:13px;padding:6px 10px;border-radius:9px;white-space:nowrap;box-shadow:0 4px 14px rgba(10,20,40,.25)}
 .tag::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-bottom:0;border-top-color:var(--ink)}
 .tag small{display:block;font-weight:500;opacity:.75;font-size:11px}
@@ -171,10 +171,7 @@ main.side-off aside{overflow:hidden;border-right:0}
 .vparts li[aria-pressed="true"]{outline:2px solid var(--accent);background:var(--accent-soft)}
 .slide{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;padding:0 6px;color:var(--ink);flex:none}
 .slide input{width:150px;accent-color:var(--accent)}
-.tools #tPick{order:-2}
-.tools #tMulti{order:9}
 #tMulti[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
-.tools #hold{order:-3} .tools #tCancel{order:-2} .tools #tPlace{order:-1}
 .mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .mlist li{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 .mlist li .meta{color:var(--muted);font-size:12px}
@@ -189,7 +186,6 @@ main.side-off aside{overflow:hidden;border-right:0}
   .tools .btn,.tools .hold{flex:none}
   .hold span{display:none}
   .brand .bt{display:none}
-  .mname{order:10;flex:1 1 100%;max-width:none}
   .btn{padding:7px 10px}
   .seg button{padding:6px 11px}
   .hint{top:8px;left:8px;right:8px}
@@ -207,6 +203,50 @@ main.side-off aside{overflow:hidden;border-right:0}
   .steps ul{flex-direction:row;overflow-x:auto}
   .steps li{flex:none}
 }
+
+/* ---- icons, toolbar groups, tooltips ---- */
+.btn svg.i,.vbar svg.i,.ctx svg.i{width:17px;height:17px;flex:none;display:block}
+.btn[data-ic]{display:inline-flex;align-items:center;gap:6px}
+.btn.ic .lb,.btn.icon .lb{display:none}
+.btn.ic,.btn.icon{padding:7px 8px}
+.tools{flex-wrap:nowrap;gap:0;padding:5px;align-items:center}
+.tg{display:flex;gap:4px;align-items:center;padding:0 5px}
+.tg+.tg{border-left:1px solid var(--line)}
+.tg:not(:has(>:not([hidden]))){display:none}
+.tools .btn{border-color:transparent;background:transparent}
+.tools .btn:hover{background:var(--bg);border-color:var(--line)}
+.tools .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tools .btn.warn{color:var(--warn)}
+.tools .btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+#tDepthN{font:600 12px var(--f-num)}
+.hold{display:flex;align-items:center;gap:6px;padding:2px 8px 2px 3px;border-radius:9px;background:var(--bg);font-size:12.5px;font-weight:600;white-space:nowrap}
+.hold img{width:30px;height:30px;object-fit:contain;background:var(--thumb);border-radius:6px}
+.stage{container:stage/inline-size}
+@container stage (max-width:1180px){ .tools .tb:not(.primary):not(#tLock) .lb{display:none} .tools .tb:not(.primary){padding:7px 8px} }
+@container stage (max-width:560px){ .tools .tb .lb{display:none} .tools .tb{padding:7px 8px} }
+[data-tip]{position:relative}
+@media (hover:hover){
+  [data-tip]:hover::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);background:var(--ink);color:var(--panel);font:500 12px var(--f-ui);padding:5px 8px;border-radius:7px;white-space:nowrap;pointer-events:none;z-index:20;box-shadow:0 4px 12px rgba(10,20,40,.2)}
+  header [data-tip]:hover::after{bottom:auto;top:calc(100% + 8px)}
+  .vbar [data-tip]:hover::after{left:auto;right:calc(100% + 10px);bottom:auto;top:50%;transform:translateY(-50%)}
+}
+.vbar button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;min-width:50px;font-size:10.5px}
+.vbar .lb{line-height:1.1}
+.vbar svg .f{fill:currentColor;fill-opacity:.35;stroke:none}
+.brk{display:none}
+.ctx button{display:flex;align-items:center;gap:8px}
+.ctx button svg.i{width:16px;height:16px;color:var(--muted)}
+.ctx button.warn svg.i{color:var(--warn)}
+.ctx button span{flex:1}
+@media (max-width:1100px){ header .hb:not(.primary) .lb{display:none} header .hb:not(.primary){padding:7px 8px} }
+@media (max-width:640px){
+  .brk{display:block;flex-basis:100%;height:0} header .grow{display:none}
+  .mname{order:0!important;flex:1 1 90px!important}
+  header .hb .lb{display:none} header .hb{padding:7px 8px} #bKeys{display:none}
+  .vbar{flex-direction:row;flex-wrap:wrap;top:auto;bottom:74px;right:8px;left:auto;max-width:calc(100% - 16px)} .vbar hr{display:none}
+  .vbar button{min-width:0;padding:6px} .vbar .lb{display:none}
+  #hintL{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;border-radius:12px;line-height:1.35;max-height:calc(2.7em + 10px)}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -220,17 +260,17 @@ main.side-off aside{overflow:hidden;border-right:0}
       <button id="mView" aria-pressed="false">Showcase</button>
     </div>
     <input id="mname" class="mname" data-i18n-aria="modelName" maxlength="80">
-    <div class="grow"></div>
+    <div class="grow"></div><div class="brk"></div>
     <div class="seg lang" role="group" data-i18n-aria="language">
       <button id="lTh" aria-pressed="true" lang="th">TH</button>
       <button id="lEn" aria-pressed="false" lang="en">EN</button>
     </div>
     <button class="btn icon" id="bFull" hidden></button>
     <button class="btn icon" id="bSnd" aria-pressed="true"></button>
-    <button class="btn" id="bOpen" data-i18n="open">Open</button>
-    <button class="btn primary" id="bSave" data-i18n="save">Save</button>
-    <button class="btn" id="bMore" data-i18n="file">File</button>
-    <button class="btn icon" id="bKeys" aria-label="?" title="?" style="font-weight:700;min-width:34px">?</button>
+    <button class="btn hb" id="bOpen" data-ic="folder"><span class="lb" data-i18n="open">Open</span></button>
+    <button class="btn hb primary" id="bSave" data-ic="save" data-k="Ctrl+S"><span class="lb" data-i18n="save">Save</span></button>
+    <button class="btn hb" id="bMore" data-ic="file"><span class="lb" data-i18n="file">File</span></button>
+    <button class="btn icon hb" id="bKeys" data-ic="keyboard" data-i18n-aria="keysTitle" data-k="?"></button>
   </header>
   <main>
     <aside id="side">
@@ -265,25 +305,33 @@ main.side-off aside{overflow:hidden;border-right:0}
         <div class="chip" id="hintL"></div>
         <div style="display:flex;gap:6px;align-items:center"><button class="chip" id="showAll" hidden style="cursor:pointer;font:inherit"></button><div class="chip stepbox" id="stepChip">Step <b id="curStep">1</b></div></div>
       </div>
-      <div class="tools" id="tools">
-        <div class="hold" id="hold" hidden><img alt=""><span></span></div>
-        <button class="btn" id="tRot"><span data-i18n="rotate"></span><kbd>R</kbd></button>
-        <button class="btn" id="tPt"><span data-i18n="changeHole"></span><kbd>T</kbd></button>
-        <button class="btn" id="tDepth" hidden><span data-i18n="depth"></span> <b id="tDepthN"></b><kbd>D</kbd></button>
-        <button class="btn" id="tTilt"><span data-i18n="tilt"></span><kbd>F</kbd></button>
-        <button class="btn" id="tTilt2"><span data-i18n="tilt2"></span><kbd>V</kbd></button>
-        <button class="btn primary" id="tPlace" data-i18n="place"></button>
-        <button class="btn" id="tUndo">Undo</button>
-        <button class="btn" id="tRedo">Redo</button>
-        <button class="btn primary" id="tPick" hidden data-i18n="pickUp"></button>
-        <button class="btn" id="tLock" hidden aria-pressed="false"><span id="tLockT"></span><kbd>L</kbd></button>
-        <label class="slide" id="slideBox" hidden><span data-i18n="slide"></span><input type="range" id="tSlide" step="0.25"></label>
-        <button class="btn" id="tGroup" hidden><span data-i18n="group"></span><kbd>G</kbd></button>
-        <button class="btn" id="tUngroup" hidden data-i18n="ungroup"></button>
-        <button class="btn" id="tMulti" hidden aria-pressed="false" data-i18n="multi"></button>
-        <button class="btn warn" id="tDel" hidden data-i18n="delPart"></button>
-        <button class="btn" id="tCancel" hidden></button>
-        <button class="btn" id="tStep" data-i18n="newStep"></button>
+      <div class="tools" id="tools" role="toolbar">
+        <div class="tg">
+          <button class="btn tb ic" id="tUndo" data-ic="undo" data-k="Ctrl+Z"><span class="lb" data-i18n="k_undo"></span></button>
+          <button class="btn tb ic" id="tRedo" data-ic="redo" data-k="Ctrl+Y"><span class="lb" data-i18n="k_redo"></span></button>
+        </div>
+        <div class="tg">
+          <div class="hold" id="hold" hidden><img alt=""><span></span></div>
+          <button class="btn tb primary" id="tPlace" data-ic="check" data-k="Enter"><span class="lb" data-i18n="place"></span></button>
+          <button class="btn tb" id="tRot" data-ic="rotate" data-k="R"><span class="lb" data-i18n="rotate"></span></button>
+          <button class="btn tb" id="tPt" data-ic="hole" data-k="T"><span class="lb" data-i18n="changeHole"></span></button>
+          <button class="btn tb" id="tDepth" data-ic="depth" data-k="D" hidden><span class="lb" data-i18n="depth"></span><b id="tDepthN"></b></button>
+          <button class="btn tb" id="tTilt" data-ic="flip" data-k="F"><span class="lb" data-i18n="tilt"></span></button>
+          <button class="btn tb" id="tTilt2" data-ic="flip2" data-k="V"><span class="lb" data-i18n="tilt2"></span></button>
+        </div>
+        <div class="tg">
+          <button class="btn tb primary" id="tPick" data-ic="move" hidden><span class="lb" data-i18n="pickUp"></span></button>
+          <label class="slide" id="slideBox" hidden><span data-i18n="slide"></span><input type="range" id="tSlide" step="0.25"></label>
+          <button class="btn tb" id="tLock" data-ic="lock" data-k="L" hidden aria-pressed="false"><span class="lb" id="tLockT"></span></button>
+          <button class="btn tb" id="tGroup" data-ic="group" data-k="G" hidden><span class="lb" data-i18n="group"></span></button>
+          <button class="btn tb" id="tUngroup" data-ic="ungroup" data-k="Shift+G" hidden><span class="lb" data-i18n="ungroup"></span></button>
+          <button class="btn tb warn ic" id="tDel" data-ic="trash" data-k="Del" hidden><span class="lb" data-i18n="delPart"></span></button>
+        </div>
+        <div class="tg">
+          <button class="btn tb" id="tCancel" data-ic="x" data-k="Esc" hidden><span class="lb" id="tCancelT"></span></button>
+          <button class="btn tb" id="tMulti" data-ic="multi" hidden aria-pressed="false"><span class="lb" data-i18n="multi"></span></button>
+          <button class="btn tb" id="tStep" data-ic="step"><span class="lb" data-i18n="newStep"></span></button>
+        </div>
       </div>
       <div class="instr-nav" id="instrNav" hidden>
         <button class="btn" id="iPrev" data-i18n="prev"></button>
@@ -337,7 +385,7 @@ th:{
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pin และ Connector',tab_motion:'Gear Wheel Shaft',tab_other:'อื่นๆ',tab_elec:'Electronics',
   iqName:'ชื่อใน VEX IQ Legal Parts',
   hSel:'{0} ถูกเลือก ลากเพื่อย้าย หรือกด ล็อก กันไม่ให้ขยับ กด Ctrl หรือ Shift ค้างแล้วคลิก หรือ เลือกหลายชิ้น เพื่อเลือกเพิ่ม',hSelSlide:'{0} ถูกเลือก ลากแถบ เลื่อนบนแกน หรือกดลูกศรขึ้นลง กด ถอดออก เพื่อย้าย',pickUp:'ถอดออก',lock:'ล็อก',unlock:'ปลดล็อก',cLock:'ล็อก หรือ ปลดล็อก',tLocked:'ชิ้นนี้ถูกล็อกอยู่ ปลดล็อกก่อนจึงจะย้ายหรือลบได้',tLockedN:'ล็อก {0} ชิ้นแล้ว',tUnlockedN:'ปลดล็อก {0} ชิ้นแล้ว',k_lock:'ล็อก หรือ ปลดล็อกชิ้นที่เลือก',slide:'เลื่อนบนแกน',
-  hPick:'เลือกชิ้นจากคลัง หรือแตะชิ้นบนโมเดลเพื่อเลือก',
+  hPick:'เลือกชิ้นจากคลัง หรือคลิกชิ้นบนโมเดล ลากชิ้นเพื่อย้าย กด Ctrl แล้วลากเพื่อเลือกหลายชิ้น',
   hFirst:'เลือกชิ้นแรกจากคลัง แล้วแตะบนพื้นเพื่อวาง',
   hArmed:'{0} แตะจุดบนโมเดล หรือแตะพื้นเพื่อวาง',
   hConn:'{0} รู {1} จาก {2} เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง',hPin:'{0} ปลาย {1}/{2} เสียบลึก {3}/{4} ช่อง กด T สลับปลาย กด D หรือเลื่อนลูกกลิ้งเปลี่ยนความลึก',hLockShort:'(ล็อกรูไว้)',depth:'ลึก',hLock:'ล็อกรูนี้ไว้ เลื่อนลูกกลิ้งหรือกด T เปลี่ยนรู คลิกเพื่อวาง ปล่อย T เพื่อปลดล็อก',hConnTouch:'{0} รู {1} จาก {2} แตะซ้ำหรือกด วาง',
@@ -363,9 +411,9 @@ en:{
   tab_beam:'Beam',tab_plate:'Plate',tab_pin:'Pins and Connectors',tab_motion:'Gears, Wheels, Shafts',tab_other:'Other',tab_elec:'Electronics',
   iqName:'Name in VEX IQ Legal Parts',
   hSel:'{0} selected. Drag it to move, or press Lock to keep it still. Hold Ctrl or Shift and click, or use Select many, to add parts',hSelSlide:'{0} selected. Drag Slide on shaft or use the up and down arrows. Press Take off to move it',pickUp:'Take off',lock:'Lock',unlock:'Unlock',cLock:'Lock or unlock',tLocked:'This part is locked. Unlock it before moving or deleting',tLockedN:'Locked {0} parts',tUnlockedN:'Unlocked {0} parts',k_lock:'Lock or unlock the selection',slide:'Slide on shaft',
-  hPick:'Pick a part from the library, or tap a part on the model to select it',
+  hPick:'Pick a part from the library, or click a part on the model. Drag a part to move it. Ctrl and drag selects many',
   hFirst:'Pick the first part from the library, then tap the floor to place it',
-  hArmed:'{0} Tap a hole on the model, or tap the floor to place',
+  hArmed:'{0}. Tap a hole on the model, or tap the floor to place',
   hConn:'{0} hole {1} of {2}. Scroll or press T to change hole, click to place',hPin:'{0} end {1}/{2}, depth {3}/{4}. T flips the end, D or scroll changes the depth',hLockShort:'(hole locked)',depth:'Depth',hLock:'Hole locked. Scroll or press T to change hole, click to place. Release T to unlock',hConnTouch:'{0} hole {1} of {2}. Tap again or press Place',
   hGround:'{0} on the floor. Tap again or press Place',
   tStepEmpty:'Step {0} has no parts yet. Place a part before starting a new step',tStepStart:'Started step {0}',
@@ -712,7 +760,7 @@ $('tDel').onclick=()=>{ if(selected<0) return; if([...selSet].some(isLocked)){ s
 $('tStep').onclick=()=>{ const maxUsed=Math.max(0,...model.parts.map(p=>p.step)); if(maxUsed<model.step){sfx('err'); toast(t('tStepEmpty',model.step));return;} sfx('step'); snapshot(); model.step++; $('curStep').textContent=model.step; saveDraft(); toast(t('tStepStart',model.step)); };
 $('mname').oninput=e=>{model.name=e.target.value; edited=true; saveDraft();};
 function closeSheet(){ const s=document.querySelector('.sheet'); if(s){s.remove(); return true;} return false; }
-/* Shortcuts use e.code (physical key), so they work with the Thai layout too (R = พ, T = ะ, F = ด, Z = ผ). */
+/* Shortcuts use e.code (physical key), so they work with the Thai layout too. */
 let lockHover=false;
 function setLock(on){
   if(on===lockHover) return;
@@ -728,6 +776,7 @@ addEventListener('keydown',e=>{
   const mod=e.ctrlKey||e.metaKey;
   if(mod&&(c==='KeyY'||(c==='KeyZ'&&e.shiftKey))){ e.preventDefault(); $('tRedo').click(); return; }
   if(c==='KeyZ'&&mod){ e.preventDefault(); $('tUndo').click(); return; }
+  if(mod&&c==='KeyS'){ e.preventDefault(); $('bSave').click(); return; }
   if(mod&&mode==='build'&&c==='KeyC'){ if(copySel()) e.preventDefault(); return; }
   if(mod&&mode==='build'&&c==='KeyV'){ if(clip){ e.preventDefault(); paste(); } return; }
   if(mod&&mode==='build'&&c==='KeyD'){ e.preventDefault(); if(copySel()) paste(); return; }
@@ -808,7 +857,8 @@ function refreshTools(){
   $('tMulti').hidden=holding||mode!=='build'; $('tMulti').setAttribute('aria-pressed',multiOn);
   $('slideBox').hidden=!(sel&&slideInfo&&!holding&&selSet.size===1);
   if(sel&&slideInfo){ const r=$('tSlide'); r.min=slideInfo.lo.toFixed(2); r.max=slideInfo.hi.toFixed(2); r.value=slideInfo.t.toFixed(2); }
-  $('tCancel').textContent=t(holding?'putBack':'deselect');
+  $('tCancelT').textContent=t(holding?'putBack':'deselect'); $('tCancel').dataset.ic=holding?'x':'x'; tipOf($('tCancel'));
+  setIc($('tLock'),$('tLock').getAttribute('aria-pressed')==='true'?'unlock':'lock'); tipOf($('tLock'));
   const h=$('hold'); h.hidden=!holding;
   if(holding){ h.querySelector('img').src=`t/${armed.sid}_${armed.col}.png`; h.querySelector('span').textContent=armed.group?t('groupOf',armed.group.length):PART[armed.sid].name; }
 }
@@ -1453,7 +1503,7 @@ function openCtx(x,y,h){
   const m=$('ctx'); m.innerHTML='';
   for(const it of items){ if(it==='-'){ m.append(document.createElement('hr')); continue; }
     const b=document.createElement('button'); b.setAttribute('role','menuitem'); if(it[3]) b.className=it[3];
-    const a=document.createElement('span'); a.textContent=t(it[0]); const k=document.createElement('kbd'); k.textContent=it[1]; b.append(a,k);
+    const a=document.createElement('span'); a.textContent=t(it[0]); const k=document.createElement('kbd'); k.textContent=it[1]; b.innerHTML=ico(CTX_IC[it[0]]); b.append(a,k);
     b.onclick=()=>{ closeCtx(); it[2](); }; m.append(b); }
   m.hidden=false; const r=stage.getBoundingClientRect(), w=m.offsetWidth, hh=m.offsetHeight;
   m.style.left=Math.max(6,Math.min(r.width-w-6,x-r.left))+'px'; m.style.top=Math.max(6,Math.min(r.height-hh-6,y-r.top))+'px';
@@ -1566,16 +1616,65 @@ async function saveCloud(body){
 }
 $('vCloud').onclick=()=>{ sfx('ui'); $('bSave').onclick({cloud:true}); };
 
+
+/* ---------- icons (24 px, stroke) ---------- */
+const IC={
+ undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+ redo:'<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
+ check:'<path d="M20 6 9 17l-5-5"/>',
+ rotate:'<path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/><circle cx="12" cy="12" r="2"/>',
+ hole:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/>',
+ depth:'<path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/>',
+ flip:'<path d="M12 3v18" stroke-dasharray="2 2.5"/><path d="M9 7 3 17h6z"/><path d="m15 7 6 10h-6z"/>',
+ flip2:'<path d="M3 12h18" stroke-dasharray="2 2.5"/><path d="M7 9l10-6v6z"/><path d="M7 15l10 6v-6z"/>',
+ move:'<path d="M12 2v20M2 12h20"/><path d="m9 5 3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/>',
+ lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+ unlock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.8"/>',
+ group:'<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/><path d="M11 7h4a2 2 0 0 1 2 2v4"/>',
+ ungroup:'<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/><path d="M16 3h5v5M3 16v5h5"/>',
+ trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>',
+ x:'<path d="M18 6 6 18M6 6l12 12"/>',
+ multi:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="m8 12 3 3 5-6"/>',
+ step:'<path d="M3 20h5v-5h5v-5h5V5h3"/><path d="M5 4v6M2 7h6"/>',
+ folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+ save:'<path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3M7 21v-7h10v7"/>',
+ file:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M12 12v6M9 15l3 3 3-3"/>',
+ keyboard:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
+ fit:'<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><rect x="8" y="8" width="8" height="8" rx="1"/>',
+ front:'<path class="f" d="M3 7l9 5v10l-9-5z"/><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+ top:'<path class="f" d="M12 2 3 7l9 5 9-5z"/><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+ side:'<path class="f" d="M21 7l-9 5v10l9-5z"/><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+ iso:'<path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+ xray:'<path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 17l9-5 9 5M12 2v10" stroke-dasharray="2 2"/><path d="M3 7l9 5 9-5" />',
+ section:'<path d="M12 2 3 7v10l9 5 9-5V7z"/><path class="f" d="M3 12l9 5 9-5-9-5z"/>',
+ measure:'<path d="M3 17 17 3l4 4L7 21z"/><path d="m7 13 2 2M10 10l2 2M13 7l2 2"/>',
+ groups:'<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/>',
+ cloud:'<path d="M17.5 19H8a5 5 0 1 1 1.6-9.7A6 6 0 0 1 21 12a3.5 3.5 0 0 1-3.5 7z"/><path d="M12 17v-5M9.5 14.5 12 12l2.5 2.5"/>',
+ copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
+ paste:'<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+ eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+ eyeoff:'<path d="M3 3l18 18M10.6 5.1A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2.2 3.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/>',
+ focus:'<circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>',
+ mirror:'<path d="M12 2v20" stroke-dasharray="2 2.5"/><path d="M9 6 3 18h6zM15 6v12h6z"/>',
+};
+const ico=n=>`<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
+function setIc(el,n){ if(!el||el.dataset.icNow===n) return; const old=el.querySelector(':scope>svg.i'); if(old) old.remove(); el.insertAdjacentHTML('afterbegin',ico(n)); el.dataset.icNow=n; }
+function tipOf(el){ const lb=el.querySelector('.lb'); const txt=(lb&&lb.textContent.trim())||el.getAttribute('aria-label')||''; el.dataset.tip=txt+(el.dataset.k?'  ('+el.dataset.k+')':''); if(lb&&getComputedStyle(lb).display==='none') el.setAttribute('aria-label',txt); }
+function decorate(){ document.querySelectorAll('[data-ic]').forEach(el=>{ setIc(el,el.dataset.icNow||el.dataset.ic); tipOf(el); }); }
+const VT_IC={fit:'fit',front:'front',top:'top',side:'side',iso:'iso',xray:'xray',section:'section',measure:'measure',groups:'groups',cloud:'cloud'};
+const CTX_IC={cTake:'move',cCopy:'copy',cDup:'copy',cMirror:'mirror',cGroup:'group',cUngroup:'ungroup',cHide:'eyeoff',cIsolate:'focus',cShowAll:'eye',fit:'fit',cDel:'trash',cPaste:'paste',cLock:'lock'};
 /* ---------- language switch ---------- */
 function applyLang(){
   document.documentElement.lang=lang;
   document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
   document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=t(el.dataset.i18nPh);});
-  document.querySelectorAll('[data-vt]').forEach(el=>{el.textContent=t(el.dataset.vt); el.title=t('vt_'+el.dataset.vt);});
+  document.querySelectorAll('[data-vt]').forEach(el=>{const v=el.dataset.vt; el.innerHTML=ico(VT_IC[v])+'<span class="lb"></span>'; el.querySelector('.lb').textContent=t(v); el.dataset.tip=t('vt_'+v); el.setAttribute('aria-label',t('vt_'+v)); el.removeAttribute('title');});
+  document.querySelectorAll('[data-ic]').forEach(el=>{ delete el.dataset.icNow; });
   if(typeof refreshShowAll==='function') refreshShowAll(); if(typeof treeOn!=='undefined'&&treeOn) renderTree();
   if($('bFull')) renderFull();
   document.querySelectorAll('[data-i18n-aria]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAria));});
+  decorate();
   $('lTh').setAttribute('aria-pressed',lang==='th'); $('lEn').setAttribute('aria-pressed',lang==='en');
   if(isDefaultName(model.name)){ model.name=t('newModel'); }
   $('mname').value=displayName(model.name);

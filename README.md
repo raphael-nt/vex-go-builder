@@ -14,6 +14,10 @@ Click a part, click a hole on the model, and it snaps into place.
 - CAD-style tools: undo and redo, copy, paste, duplicate, mirror left-right, groups, hide and isolate,
   parts tree, view cube with fit, X-ray, section view, measure, collision warning, right-click menu,
   library search, PNG and CSV export, shortcut sheet (press ?)
+- Drag a part to move it (no Take off needed), Lock (L) keeps parts from moving, Ctrl and drag for box select,
+  named groups in a group list, blinking marker on the chosen hole
+- Icon toolbar grouped by task (history, part in hand, selection, step) with tooltips that show the shortcut; Ctrl+S saves
+- Cloud save to a Supabase project with a room code (see `supabase/vexgo_models.sql`)
 
 ## Run locally
 
