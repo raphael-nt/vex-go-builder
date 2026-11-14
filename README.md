@@ -8,7 +8,7 @@ Click a part, click a hole on the model, and it snaps into place.
 - **Builder**: part library with thumbnails and colors, snap to holes, rotate (R), change hole (T), tilt (F), Undo, parts used vs. quantity in the kit, save and load as JSON
 - **Showcase**: turn the model and tap a part to see its name, highlight every part of one kind, or switch to 2D and swipe through 10 pictures around the robot
 - **Instructions**: step-by-step playback with parts flying in, orbit camera, parts list per step, link to the official VEX instructions
-- Built-in models: Competition Base (55 parts, 28 steps) and Competition Advanced (131 parts), built from VEX instructions 269-8115-010 and 269-8115-040
+- Built-in models: Competition Base (55 parts, 28 steps) and Competition Advanced (133 parts, 50 steps), built from VEX instructions 269-8115-010 and 269-8115-040
 - Thai and English UI, click sounds (can be muted), saved models with preview pictures in Open
 - Works on phones, tablets and desktop
 - CAD-style tools: undo and redo, copy, paste, duplicate, mirror left-right, groups, hide and isolate,
@@ -43,7 +43,8 @@ Saving to a shared database only works inside Claude artifacts. On a normal host
 docs/    the web app (index.html, parts.json, models, m/ part meshes as .glb, t/ thumbnails)
 tools/   step2glb.py turns the VEX GO STEP files into GLB meshes, colors.py writes kit colors into parts.json,
          the rest (holes, connectors, catalog) find the pin and shaft holes
-build/   scripted models (lib.py, base.py, adv.py) that write the model JSON
+build/   scripted models (lib.py, base.py, adv.py) that write the model JSON. adv.py is plain Python (python build/adv.py)
+         and builds Competition Advanced on top of docs/model-base.json
 ```
 
 Meshes keep the full STEP tessellation (no polygon reduction) and the CAD colors of every face.

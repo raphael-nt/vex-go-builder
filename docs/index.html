@@ -553,6 +553,7 @@ const armedConns=()=>armed.group?armed.conns:PART[armed.sid].conn;
 function srcOptions(target){
   const C=armedConns(); const out=[];
   C.forEach((c,j)=>{ if(compat(c.k,target.k)) out.push(j); });
+  if(!armed.group&&out.some(j=>isM(C[j].k))) return out.filter(j=>isM(C[j].k));
   out.sort((a,b)=>(isM(C[b].k)-isM(C[a].k)));
   return out;
 }
@@ -919,14 +920,15 @@ function jointGraph(faces=true){
 /* parts that travel with S: everything joined to it, not passing through the parts in stop.
    If that reaches most of the model, S is held by the frame, so only S itself moves. */
 /* pins and standoffs (and anything else) held only by S: they come along when S is moved or taken off */
+const isFastener=i=>PART[model.parts[i].sid]&&PART[model.parts[i].sid].cat==='pin';
 function withRiders(S){
   const adj=jointGraph(), inS=new Set(S), out=new Set(S), seen=new Set();
   model.parts.forEach((p,st)=>{ if(inS.has(st)||seen.has(st)) return;
     const comp=[st], q=[st]; seen.add(st); let free=true, touches=false;          // one piece of the model outside S
     while(q.length){ const i=q.pop(); for(const j of adj[i]){ if(inS.has(j)){ touches=true; continue; } if(!seen.has(j)){ seen.add(j); comp.push(j); q.push(j); } } }
-    // a piece that touches S and nothing else (a spacer on a pin, a connector with its pins) rides along
-    // a shaft is a guide, not a rider: a plate taken off a shaft leaves the shaft and its wheels
-    if(touches&&comp.length<model.parts.length*.5&&!comp.some(i=>PART[model.parts[i].sid].conn.some(c=>c.k==='MS'))) for(const i of comp) out.add(i);
+    // only loose fasteners held solely by S (pins, standoffs, spacers, unattached connectors) ride along
+    // structural beams/plates/electronics and shafts stay put so taking off a pin or beam never drags attached structures
+    if(touches&&comp.length<model.parts.length*.5&&comp.every(isFastener)&&!comp.some(i=>PART[model.parts[i].sid].conn.some(c=>c.k==='MS'))) for(const i of comp) out.add(i);
   });
   return out; }
 function attached(S,stop,faces=true){
@@ -1117,7 +1119,7 @@ function makeGroup(idx,primary){
 function pickGroup(){ const a=makeGroup(selSet,selected); snapshot(); for(const i of [...selSet].sort((x,y)=>y-x)) model.parts.splice(i,1); armed=a; }
 $('tPick').onclick=()=>{
   if(selected<0) return;
-  { const R=withRiders(selSet); if(R.size>selSet.size&&![...R].some(isLocked)) selSet=R; }   // pins and standoffs on the part come with it
+  if(![...selSet].every(isFastener)){ const R=withRiders(selSet); if(R.size>selSet.size&&![...R].some(isLocked)) selSet=R; }   // pins and standoffs on a part come with it; taking off a pin or connector detaches only itself
   if([...selSet].some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
   if(selSet.size>1) pickGroup();
   else { const p=model.parts[selected]; snapshot(); model.parts.splice(selected,1); armed={sid:p.sid,col:p.col,hex:p.hex,moved:true}; }   // a taken-off part is placed once, like a move
