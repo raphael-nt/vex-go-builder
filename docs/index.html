@@ -584,7 +584,7 @@ const armedConns=()=>armed.group?armed.conns:PART[armed.sid].conn;
 function srcOptions(target){
   const C=armedConns(); const out=[];
   C.forEach((c,j)=>{ if(compat(c.k,target.k)) out.push(j); });
-  if(!armed.group&&out.some(j=>isM(C[j].k))) return out.filter(j=>isM(C[j].k));
+  // pegs come first, so a connector goes in by its peg; T then also offers its own holes, either face, to lay it hole over hole
   out.sort((a,b)=>(isM(C[b].k)-isM(C[a].k)));
   return out;
 }
