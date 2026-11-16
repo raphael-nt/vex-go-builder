@@ -814,7 +814,7 @@ addEventListener('keydown',e=>{
   if(mod&&mode==='build'&&c==='KeyC'){ if(copySel()) e.preventDefault(); return; }
   if(mod&&mode==='build'&&c==='KeyV'){ if(clip){ e.preventDefault(); paste(); } return; }
   if(mod&&mode==='build'&&c==='KeyD'){ e.preventDefault(); if(copySel()) paste(); return; }
-  if(mod&&mode==='build'&&!armed&&selected>=0&&/^Arrow(Up|Down|Left|Right)$/.test(c)){ e.preventDefault(); nudgeSel(c.slice(5),e.altKey,e.shiftKey?6.35:12.7); return; }
+  if(mod&&mode==='build'&&!armed&&selected>=0&&/^Arrow(Up|Down|Left|Right)$/.test(c)){ e.preventDefault(); nudgeSel(c.slice(5),e.altKey,e.shiftKey?6.35:12.7,e.shiftKey); return; }
   if(e.ctrlKey||e.metaKey||e.altKey) return;      // never steal browser shortcuts such as Ctrl+R
   if(mode==='build'&&(c==='KeyR'||c==='KeyT'||c==='KeyF')) e.preventDefault();
   if(c==='KeyT'){ if(e.repeat) return; if(armed&&mode==='build'){ $('tPt').click(); if(hover&&hover.type==='conn') setLock(true); } return; }
@@ -1708,11 +1708,20 @@ async function checkCollision(){
 
 /* Ctrl + arrows: move the selection straight along fixed world axes, no rotation.
    Left/Right is X (Y while Alt is held), Up/Down is Z */
-async function nudgeSel(dir,alt,step){
+/* Shortest move along u (0 < t <= max) that seats a peg of S in an outside hole, or a peg outside in a hole of S */
+function nextSeat(S,u,max){
+  const inS=new Set(S), mine=allConns.filter(c=>inS.has(c.i)), out=allConns.filter(c=>!inS.has(c.i)), w=new THREE.Vector3(); let best=0;
+  for(const m of mine) for(const o of out){
+    if(isM(m.k)===isM(o.k)||!compat(m.k,o.k)||Math.abs(m.n.dot(o.n))<.95) continue;
+    w.subVectors(o.p,m.p); const t=w.dot(u); if(t<.3||t>max+.01||(best&&t>=best)) continue;
+    if(w.addScaledVector(u,-t).length()<.5) best=t; }
+  return best; }
+async function nudgeSel(dir,alt,step,fine){
   const S0=[...selSet]; if(!S0.length) return; if(S0.some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
   const S=[...withRiders(S0)]; if(S.some(isLocked)){ sfx('err'); toast(t('tLocked')); return; }
   const sg=(dir==='Right'||dir==='Up')?1:-1, d=new THREE.Vector3();
   if(dir==='Up'||dir==='Down') d.z=sg*step; else if(alt) d.y=sg*step; else d.x=sg*step;
+  if(!fine){ const t=nextSeat(S,d.clone().normalize(),step); if(t) d.setLength(t); }        // stop at the first hole a peg lines up with
   const r=a=>a.map(x=>Math.round(x*1000)/1000);
   snapshot(); for(const k of S){ const p=model.parts[k]; p.p=r(V(p.p).add(d).toArray()); }
   sfx('ui'); rebuildConns(); slideInfo=computeSlide(selSet); await syncScene(); rebuildDots(); updateHint(); saveDraft(); refreshTools();
