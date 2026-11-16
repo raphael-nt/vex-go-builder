@@ -39,8 +39,8 @@ MA=S(m.add('269-6690','elec',RM,(0,31.63,0),(XA,Ys,Zs),dir='-X'))
 for lp in [(6.35,31.63,6.35),(6.35,31.63,-6.35),(-19.05,31.63,6.35),(-19.05,31.63,-6.35)]:
     S(m.add('2260','red',RP,(0,0,0),m.w(MA,lp),dir='-X'))
 m.next()
-# 6 red shaft into motor
-S(m.add('2234','red',frame(z='+X',x='+Y'),(0,0,0),(XA,Ys,Zs),dir='-X'))
+# 6 red shaft into motor, pushed in until the stop ring (local z -2.875) sits on the motor face (local y 31.75)
+S(m.add('2234','red',frame(z='+X',x='+Y'),(0,0,-2.755),(XA,Ys,Zs),dir='-X'))
 m.next(); m.next()   # 7 attach motor sub-assembly to plate
 # 8-14 mirror of 1-7 on the right plate
 for st in range(1,8):

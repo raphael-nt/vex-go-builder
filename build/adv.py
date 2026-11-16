@@ -7,7 +7,7 @@ docs/model-advanced.json. Every number below comes from the build instructions:
     (x = +-44.45, y = -6.35 and -19.05), pegs up.
   * Each tower foot is a Yellow Beam 1x4 with two Red Connectors. The connector holes drop on the
     green pegs, the connector pegs go outward into the yellow beam, and the Black Large Beam is pinned
-    to the other two holes of the yellow beam (row 2 from the bottom, so the black beam stands on the base).
+    to the other two holes of the yellow beam (row 3 from the bottom, so the black beam rests on the Angle Beam 90).
   * The tower with the Motor and the red gears is on the +X side (seen from the back in step 50).
   * Black Large Beam and Dark Gray Large Beam are joined by Blue Standoffs (12.7 mm apart).
   * The Motor rests on the Brain, the Plain Shaft spans from one black beam to the other.
@@ -86,7 +86,7 @@ G_PEG = Z_TOP + 12.7                # top pegs of the green connectors
 # ---------- tower geometry (s = +1 motor tower, s = -1 plain tower) ----------
 YT = -38.1                          # center line of both towers
 Z_FOOT = G_PEG + 6.23               # red connector peg height = yellow foot beam center
-Z_BLACK = Z_FOOT + 57.15            # foot beam pins in row 2 from the bottom, so the black beam stands on the base
+Z_BLACK = Z_FOOT + 44.45            # foot beam pins in row 3 from the bottom, so the black beam rests on the Angle Beam 90
 Z_DG = Z_BLACK + 25.4               # dark gray top hole meets the black top hole
 def X_BLACK(s): return s * 47.75    # black beam is pinned flat against the inner face of the foot beam
 def X_DG(s): return s * 28.95       # 12.7 mm standoff gap inside the black beam
@@ -108,20 +108,22 @@ def tower(s, st):
     # yellow large beam 2x4 on the inner face over those pins
     flat(st['yl'], '019', 'yellow', (0, 0, 0), (X_DG(s) - s * 6.1, YT, Z_DG + 25.4), Z, neg(out))
     if s > 0:
-        # motor on the inner face, output in the center column, cable up
+        # motor on the inner face, output in the back column (hy -6.35, step 7), so the motor overhangs
+        # the beam by 6.35 mm toward the back. Cable up
         Rm = frame(x=neg(Z), y=out)                            # local y = face toward the beam
-        mo = dg(s, -38.1, 0, -1)
+        mo = dg(s, -31.75, -6.35, -1)
         put(5, '269-6690', 'elec', Rm, (0, 31.63, 0), mo, neg(out))
         wm = lambda lp: add(mo, rot(Rm, sub(lp, (0, 31.63, 0))))
-        for lp in ((-6.35, 31.63, 6.35), (-19.05, 31.63, 6.35), (-12.7, 31.63, 0)):
+        for lp in ((-6.35, 31.63, -6.35), (-19.05, 31.63, -6.35), (-12.7, 31.63, 0)):
             pin(5, '2260', 'red', wm(lp), out)
-        pin(6, '2260', 'red', wm((-25.4, 31.63, 0)), out)
-        # red shaft: stop ring outside, 12.7 mm of it inside the motor
-        pin(6, '2234', 'red', add(dg(s, -38.1, 0, 1), (s * 15.0, 0, 0)), neg(out))
+        pin(6, '2260', 'red', wm((6.35, 31.63, -6.35)), out)
+        # red shaft in the motor output, stop ring (local z -2.875) on the motor face (local y 31.75),
+        # long end out through the dark gray beam to the red gear on the outer face
+        pin(6, '2234', 'red', add(mo, mul(out, 0.12 - 2.875)), neg(out))
         # red gears flat on the outer face: two on the pink pins, one on the motor shaft (as drawn in steps 8-10)
         pin(8, '2180', 'red', dg(s, -31.75, 6.35, 1), out, (0, 0, -3.17))
         pin(9, '2180', 'red', dg(s, -19.05, 6.35, 1), out, (0, 0, -3.17))
-        pin(10, '2180', 'red', dg(s, -38.1, 0, 1), out, (0, 0, -3.17))
+        pin(10, '2180', 'red', dg(s, -31.75, -6.35, 1), out, (0, 0, -3.17))
         # red pin in the back of the motor (step 19)
         pin(19, '2260', 'red', wm((-6.35, -18.98, 6.35)), neg(out))
     # blue standoffs from the outer face to the black beam
@@ -131,7 +133,7 @@ def tower(s, st):
     flat(st['bk'], '026', 'black', (0, 0, 0), (X_BLACK(s), YT, Z_BLACK), Z, out)
     if s > 0:   # only the motor tower gets the two inner pins (step 14, not in step 38)
         for hx in (6.35, -6.35): pin(st['bk'], '2260', 'red', bk(s, hx, 6.35, -1), out)
-    for hy in (6.35, -6.35): pin(st['bp'], '2260', 'red', bk(s, -57.15, hy, 1), neg(out))
+    for hy in (6.35, -6.35): pin(st['bp'], '2260', 'red', bk(s, -44.45, hy, 1), neg(out))
     # foot: yellow beam 1x4 along Y, two red connectors in its front holes
     flat(st['ft'], '003', 'yellow', (0, 0, 0), (s * 53.85, -25.4, Z_FOOT), Y, out)
     for y in (-6.35, -19.05):
@@ -150,8 +152,8 @@ collar(37, (X_DG(-1) - 3.05 - 3.175, P1[1], P1[2]), neg(X))
 
 # ---------- lift arms ----------
 # Black arm: pivot in the end hole of each Black Beam 1x12, red pins in the other end hole, 139.7 mm.
-# Gray arm: pivot in the second hole of each Gray Beam 1x14 (an orange standoff sits in the end hole
-# behind it), red pins in the second hole from the far end, also 139.7 mm. Equal arms with pivots and
+# Gray arm: pivot in the third hole of each Gray Beam 1x14 (an orange standoff sits in the end hole
+# behind it), red pins in the hole at the far end, also 139.7 mm. Equal arms with pivots and
 # end pins 25.4 mm apart make a parallelogram, so the orange connectors stay upright and the forks level.
 # The arm angle is free (the motor drives it). 43 degrees is the lowest pose where the orange
 # connectors still clear the front plate of the base.
@@ -179,12 +181,13 @@ pin(23, '2271', 'orange', at(P1, D1, -12.7, 101.6), neg(X))
 arm_beam(24, '011', 'black', P1, D1, 15.75, 69.85)
 for x in (-18.8, 18.8): pin(25, '2260', 'red', at(P1, D1, x, L1), (-1 if x < 0 else 1, 0, 0))
 
-# gray arm (steps 27-31): standoffs in the end hole behind the pivot, the middle hole and hole 2 from the far end
-arm_beam(27, '013', 'gray', P2, D2, -15.75, 69.85)
-for s_ in (-12.7, 63.5, 127.0): pin(27, '2271', 'orange', at(P2, D2, -12.7, s_), neg(X))
+# gray arm (steps 27-31): the shaft goes through hole 3, standoffs stay in the same beam holes as before
+# (end hole behind the pivot, hole 7, hole 2 from the far end), so they sit one hole further back
+arm_beam(27, '013', 'gray', P2, D2, -15.75, 57.15)
+for s_ in (-25.4, 50.8, 114.3): pin(27, '2271', 'orange', at(P2, D2, -12.7, s_), neg(X))
 pin(28, '124', 'steel', P2, X)
 for x in (-9.525, 3.175): collar(28, (x, P2[1], P2[2]), X)        # one collar width apart (step 28)
-arm_beam(30, '013', 'gray', P2, D2, 15.75, 69.85)
+arm_beam(30, '013', 'gray', P2, D2, 15.75, 57.15)
 for x in (-18.8, 18.8): pin(31, '2260', 'red', at(P2, D2, x, L2), (-1 if x < 0 else 1, 0, 0))
 
 # ---------- forks (steps 42-46) ----------

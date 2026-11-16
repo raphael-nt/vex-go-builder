@@ -5,7 +5,7 @@ Click a part, click a hole on the model, and it snaps into place.
 
 ## Features
 
-- **Builder**: part library with thumbnails and colors, snap to holes, rotate (R), change hole (T), tilt (F), Undo, parts used vs. quantity in the kit, save and load as JSON
+- **Builder**: part library with thumbnails and colors, snap to holes, rotate by 45 degrees (R), change hole (T), tilt (F), Undo, parts used vs. quantity in the kit, save and load as JSON
 - **Showcase**: turn the model and tap a part to see its name, highlight every part of one kind, or switch to 2D and swipe through 10 pictures around the robot
 - **Instructions**: step-by-step playback with parts flying in, orbit camera, parts list per step, link to the official VEX instructions
 - Built-in models: Competition Base (55 parts, 28 steps) and Competition Advanced (133 parts, 50 steps), built from VEX instructions 269-8115-010 and 269-8115-040
@@ -18,6 +18,12 @@ Click a part, click a hole on the model, and it snaps into place.
   named groups in a group list, blinking marker on the chosen hole
 - Icon toolbar grouped by task (history, part in hand, selection, step) with tooltips that show the shortcut; Ctrl+S saves
 - Cloud save to a Supabase project with a room code (see `supabase/vexgo_models.sql`)
+- Ctrl and arrow keys move the selection straight along fixed axes (Left and Right for X, Alt for Y, Up and Down for Z),
+  one hole per press or half a hole with Shift, stopping at the first hole a peg lines up with. Axis guides sit on a floor
+  corner and on the selection
+- Mechanisms: Q turns a part 45 degrees and everything linked to it follows. Square shafts, meshing gears (8T, 16T, 24T at
+  their real ratios), wheels and pin linkages such as the lift arm are solved together. K opens a fine angle control in 1 degree steps
+- Play (P) runs every motor: wheels and gears spin and the lift arm swings inside the range where it hits nothing
 
 ## Run locally
 
