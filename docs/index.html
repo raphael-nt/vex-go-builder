@@ -41,6 +41,7 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px max(1
 .mname{min-width:0;flex:1 1 160px;max-width:260px;font:600 14px var(--f-ui);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
 .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:500 13px var(--f-ui);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
 .btn:hover{border-color:var(--accent)}
+a.btn{text-decoration:none}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn:disabled{opacity:.45;cursor:default}
 button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -270,6 +271,7 @@ main.side-off aside{overflow:hidden;border-right:0}
       <button id="lTh" aria-pressed="true" lang="th">TH</button>
       <button id="lEn" aria-pressed="false" lang="en">EN</button>
     </div>
+    <a class="btn icon hb" id="bTimer" href="/vex-unofficial-timer/" data-ic="timer" data-i18n-aria="timer"></a>
     <button class="btn icon" id="bFull" hidden></button>
     <button class="btn icon" id="bSnd" aria-pressed="true"></button>
     <button class="btn hb" id="bOpen" data-ic="folder" data-k="Ctrl+O"><span class="lb" data-i18n="open">Open</span></button>
@@ -384,7 +386,7 @@ const $=id=>document.getElementById(id);
 /* ---------- language ---------- */
 const L={
 th:{
-  mode:'โหมด',modelName:'ชื่อโมเดล',language:'ภาษา',newModel:'โมเดลใหม่',modelDefault:'โมเดล',
+  timer:'จับเวลาแข่ง',mode:'โหมด',modelName:'ชื่อโมเดล',language:'ภาษา',newModel:'โมเดลใหม่',modelDefault:'โมเดล',
   open:'เปิดโมเดล',save:'บันทึก',file:'ไฟล์',
   bomTitle:'ชิ้นที่ใช้ เทียบกับในกล่อง',bomEmpty:'ยังไม่มีชิ้น',
   refLink:'เปิดคู่มือจริงของ VEX',stepPartsTitle:'ชิ้นที่ใช้ใน Step นี้',noPartsModel:'โมเดลนี้ยังไม่มีชิ้น',
@@ -410,7 +412,7 @@ th:{
   tLoadFail:'โหลดชิ้นส่วนไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่',noWebgl:'อุปกรณ์นี้ไม่รองรับ WebGL จึงแสดงโมเดล 3 มิติไม่ได้',bootFail:'โหลดข้อมูลชิ้นส่วนไม่ได้ ลองรีเฟรชหน้า'
 },
 en:{
-  mode:'Mode',modelName:'Model name',language:'Language',newModel:'New model',modelDefault:'Model',
+  timer:'Match timer',mode:'Mode',modelName:'Model name',language:'Language',newModel:'New model',modelDefault:'Model',
   open:'Open',save:'Save',file:'File',
   bomTitle:'Used vs. in the kit',bomEmpty:'No parts yet',
   refLink:'Open the official VEX instructions',stepPartsTitle:'Parts in this step',noPartsModel:'This model has no parts yet',
@@ -2034,6 +2036,7 @@ const IC={
  eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
  eyeoff:'<path d="M3 3l18 18M10.6 5.1A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2.2 3.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/>',
  focus:'<circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>',
+ timer:'<circle cx="12" cy="14" r="8"/><path d="M12 14V10M10 2h4M12 2v4M19 7l1.5-1.5"/>',
  mirror:'<path d="M12 2v20" stroke-dasharray="2 2.5"/><path d="M9 6 3 18h6zM15 6v12h6z"/>',
 };
 const ico=n=>`<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
